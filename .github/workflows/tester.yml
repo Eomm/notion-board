@@ -1,0 +1,16 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  github-action-notion-statusboard:
+    runs-on: ubuntu-latest
+    name: Test the Notion GitHub Action
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Update Notion
+        uses: ./ # Uses an action in the root directory
+        id: notion
+        with:
+          notion-token: ${{ secrets.NOTION_TOKEN }}
+          database-id: ${{ secrets.NOTION_DATABASE_ID }}

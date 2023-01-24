@@ -3,15 +3,27 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Monitor your modules and repositories from Notion",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "lint:fix": "standard --fix",
+    "lint": "standard",
+    "build": "ncc build index.js -o dist --license licenses.txt",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Eomm/notion-board.git"
   },
-  "keywords": [],
+  "keywords": [
+    "notion",
+    "github",
+    "actions",
+    "monitoring",
+    "dashboard",
+    "board",
+    "status",
+    "status-board"
+  ],
   "author": "Manuel Spigolon <behemoth89@gmail.com> (https://github.com/Eomm)",
   "license": "MIT",
   "bugs": {
@@ -19,12 +31,21 @@
   },
   "homepage": "https://github.com/Eomm/notion-board#readme",
   "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1",
     "@notionhq/client": "^2.2.3",
     "p-queue": "^7.3.0",
     "pino": "^8.8.0",
     "pino-pretty": "^9.1.1"
   },
   "devDependencies": {
+    "@vercel/ncc": "^0.36.0",
     "standard": "^17.0.0"
+  },
+  "standard": {
+    "ignore": [
+      "**/node_modules/**",
+      "**/dist/**"
+    ]
   }
 }
