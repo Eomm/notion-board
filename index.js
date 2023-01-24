@@ -6,11 +6,7 @@ import * as core from '@actions/core'
 import { upsertStatusBoard } from './statusboard.js'
 
 try {
-  const logger = pino({
-    transport: {
-      target: 'pino-pretty'
-    }
-  })
+  const logger = pino({ level: 'debug' })
 
   const notionToken = core.getInput('notion-token')
   const databaseId = core.getInput('database-id')

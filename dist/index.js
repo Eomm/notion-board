@@ -12774,11 +12774,7 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
 
 try {
-  const logger = pino__WEBPACK_IMPORTED_MODULE_0__({
-    transport: {
-      target: 'pino-pretty'
-    }
-  })
+  const logger = pino__WEBPACK_IMPORTED_MODULE_0__({ level: 'debug' })
 
   const notionToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('notion-token')
   const databaseId = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('database-id')
