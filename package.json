@@ -1,0 +1,30 @@
+{
+  "name": "notion-board",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Monitor your modules and repositories from Notion",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Eomm/notion-board.git"
+  },
+  "keywords": [],
+  "author": "Manuel Spigolon <behemoth89@gmail.com> (https://github.com/Eomm)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Eomm/notion-board/issues"
+  },
+  "homepage": "https://github.com/Eomm/notion-board#readme",
+  "dependencies": {
+    "@notionhq/client": "^2.2.3",
+    "p-queue": "^7.3.0",
+    "pino": "^8.8.0",
+    "pino-pretty": "^9.1.1"
+  },
+  "devDependencies": {
+    "standard": "^17.0.0"
+  }
+}
