@@ -1,0 +1,23 @@
+# See the syntax docs at
+# https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+
+name: github-action-notion-statusboard
+description: Build a status board of your GitHub projects in your Notion workspace
+
+inputs:
+  notion-token:
+    description: >
+      The Notion integration token.
+    required: true
+  database-id:
+    description: >
+      The Notion database ID where the data will be stored.
+    required: true
+
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
+
+branding:
+  icon: activity
+  color: white
