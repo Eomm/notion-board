@@ -5,6 +5,21 @@ name: github-action-notion-statusboard
 description: Build a status board of your GitHub projects in your Notion workspace
 
 inputs:
+  github-repository-query:
+    description: >
+      The GitHub query to select the repositories to be syncronized to Notion.
+    required: true
+    # default: 'user:your-username' TODO
+  github-issue-query:
+    description: >
+      Filter to count the issues in the repository.
+    required: false
+    default: 'is:open'
+  github-token:
+    description: > 
+      Your Github token, it's already available to your Github action.
+    required: false
+    default: ${{ github.token }}
   notion-token:
     description: >
       The Notion integration token.

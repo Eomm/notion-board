@@ -1,23 +1,34 @@
 
+import { GitHubWrapper } from './github-wrapper.js'
 import { NotionWrapper } from './notion-wrapper.js'
 
 export { upsertStatusBoard }
 
 async function upsertStatusBoard ({
   logger,
+  githubToken,
+  githubRepositoryQuery,
+  githubIssueQuery,
   notionToken,
   databaseId
 }) {
+  const github = new GitHubWrapper({
+    auth: githubToken,
+    logger
+  })
+
   const notion = new NotionWrapper({
     auth: notionToken,
     databaseId
   })
 
-  const records = await notion.readAllDatabase()
-  logger.info('Read %d records', records.length)
+  const allRepos = await github.searchRepositories(githubRepositoryQuery)
+  logger.info('Found %d repositories', allRepos.length)
 
-  // todo read the data from github
   // todo read the data from npm
+
+  const records = await notion.readAllDatabase()
+  logger.info('Read %d records from notion', records.length)
 
   const freshData = [
     {

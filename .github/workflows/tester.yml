@@ -14,5 +14,6 @@ jobs:
         uses: ./ # Uses an action in the root directory
         id: notion
         with:
+          github-repository-query: user:Eomm is:public
           notion-token: ${{ secrets.NOTION_TOKEN }}
           database-id: ${{ secrets.NOTION_DATABASE_ID }}
