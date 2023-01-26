@@ -18,11 +18,18 @@ class GitHubWrapper {
       variables: { searchQuery }
     })
 
-    return repos
+    return repos.map(normalizeRepository)
   }
 }
 
 export { GitHubWrapper }
+
+function normalizeRepository (repo) {
+  if (repo.pkg?.text) {
+    repo.pkg = JSON.parse(repo.pkg.text)
+  }
+  return repo
+}
 
 function paginateQuery (options) {
   const { client, logger, query, queryName, variables } = options

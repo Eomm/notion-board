@@ -1,5 +1,6 @@
 
 import { GitHubWrapper } from './github-wrapper.js'
+import { NpmWrapper } from './npm-wrapper.js'
 import { NotionWrapper } from './notion-wrapper.js'
 
 export { upsertStatusBoard }
@@ -17,6 +18,10 @@ async function upsertStatusBoard ({
     logger
   })
 
+  const npm = new NpmWrapper({
+    logger
+  })
+
   const notion = new NotionWrapper({
     auth: notionToken,
     databaseId
@@ -25,7 +30,8 @@ async function upsertStatusBoard ({
   const allRepos = await github.searchRepositories(githubRepositoryQuery)
   logger.info('Found %d repositories', allRepos.length)
 
-  // todo read the data from npm
+  const npmPackages = await npm.searchPackages(allRepos)
+  console.log({ npmPackages })
 
   const records = await notion.readAllDatabase()
   logger.info('Read %d records from notion', records.length)

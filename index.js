@@ -1,6 +1,6 @@
 
 import * as core from '@actions/core'
-import { format } from 'quick-format-unescaped'
+import * as format from 'quick-format-unescaped'
 
 import { upsertStatusBoard } from './action.js'
 

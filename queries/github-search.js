@@ -11,6 +11,7 @@ export const querySearch = `#graphql
           name
           description
           owner { login }
+          stargazerCount
           url
           isArchived
           isFork
