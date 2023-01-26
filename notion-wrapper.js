@@ -68,7 +68,7 @@ function toNotionProperties ({
   packageSizeBytes,
   lastCommitAt
 }) {
-  return {
+  const mandatory = {
     Project: {
       title: [
         { text: { content: title } }
@@ -76,21 +76,38 @@ function toNotionProperties ({
     },
     Issues: { number: issues },
     PRs: { number: prs },
-    Downloads: { number: downloads },
-    NPM: { url: packageUrl },
     GitHub: { url: repositoryUrl },
-    Version: {
-      rich_text: [
-        { type: 'text', text: { content: version } }
-      ]
-    },
     Stars: { number: stars },
-    Size: { number: packageSizeBytes },
-    'Last Commit': {
+    Archived: { checkbox: archived }
+  }
+
+  if (lastCommitAt) {
+    mandatory['Last Commit'] = {
       date: {
         start: lastCommitAt
       }
-    },
-    Archived: { checkbox: archived }
+    }
   }
+
+  if (version) {
+    mandatory.Version = {
+      rich_text: [
+        { type: 'text', text: { content: version } }
+      ]
+    }
+  }
+
+  if (packageUrl) {
+    mandatory.NPM = { url: packageUrl }
+  }
+
+  if (downloads) {
+    mandatory.Downloads = { number: downloads }
+  }
+
+  if (packageSizeBytes) {
+    mandatory.Size = { number: packageSizeBytes }
+  }
+
+  return mandatory
 }

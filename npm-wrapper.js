@@ -24,7 +24,7 @@ class NpmWrapper {
     return { ...pkg, manifest }
   }
 
-  async getPackageManifest (pkg, opts = { fullMetadata: false }) {
+  async getPackageManifest (pkg, opts = { fullMetadata: true }) {
     this.logger.debug('Fetching manifest for %s', pkg.name)
     return pacote.manifest(pkg.name, {
       ...opts,
