@@ -47,20 +47,22 @@ async function upsertStatusBoard ({
     switch (item.action) {
       case 'add':
         {
-          const result = await notion.addItem(item.payload)
+          const result = await notion.createItem(item.payload)
           logger.info('Added item %s', result.url)
         }
         break
 
       case 'update':
         {
-          // todo
-          const result = await notion.addItem(item.payload)
+          const result = await notion.updateItem(item.previousData, item.payload)
           logger.info('Updated item %s', result.url)
         }
         break
       case 'delete':
-        // todo
+        {
+          const result = await notion.deleteItem(item.previousData)
+          logger.info('Deleted item %s', result.url)
+        }
         break
     }
   }
@@ -88,7 +90,7 @@ function buildActions ({
 
   const deleteActions = notionLines
     .filter(removeOldLines(githubReposMap))
-    .map(line => ({ action: 'delete', payload: line }))
+    .map(line => ({ action: 'delete', previousData: line }))
 
   return addAndUpdateActions.concat(deleteActions)
 }
@@ -109,6 +111,7 @@ function convertToAction ({ github, npm, notion }) {
 
   return {
     action,
+    previousData: notion,
     payload: {
       title: github.name,
       version: npm?.version || github.pkg?.version,

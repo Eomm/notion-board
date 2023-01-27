@@ -42,11 +42,35 @@ class NotionWrapper {
     return allRecords
   }
 
-  async addItem (item) {
+  async createItem (item) {
     const toInsert = toNotionProperties(item)
     const result = await this.queue.add(() => this.notion.pages.create({
       parent: { database_id: this.databaseId },
       properties: toInsert
+    }))
+
+    return result
+  }
+
+  async updateItem (oldItem, newItem) {
+    const asLocal = toHumanProperties(oldItem.properties)
+    console.log('asLocal', asLocal)
+
+    // todo diff asLocal and newItem
+
+    const toUpdate = toNotionProperties(newItem)
+    const result = await this.queue.add(() => this.notion.pages.update({
+      parent: { database_id: this.databaseId },
+      page_id: oldItem.id,
+      properties: toUpdate
+    }))
+
+    return result
+  }
+
+  async deleteItem (item) {
+    const result = await this.queue.add(() => this.notion.blocks.delete({
+      block_id: item.id
     }))
 
     return result
@@ -110,4 +134,20 @@ function toNotionProperties ({
   }
 
   return mandatory
+}
+
+function toHumanProperties (properties) {
+  return {
+    title: properties.Project.title[0].plain_text,
+    version: properties.Version.rich_text[0].plain_text,
+    stars: properties.Stars?.number,
+    issues: properties.Issues?.number,
+    prs: properties.PRs?.number,
+    archived: properties.Archived?.checkbox,
+    downloads: properties.Downloads?.number,
+    repositoryUrl: properties.GitHub?.url,
+    packageUrl: properties.NPM?.url,
+    packageSizeBytes: properties.Size?.number,
+    lastCommitAt: properties['Last Commit']?.date.start
+  }
 }
