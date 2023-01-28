@@ -10,7 +10,7 @@ main()
 async function main () {
   try {
     const logger = pino({
-      level: 'debug',
+      level: core.getInput('log-level') || 'debug',
       transport: {
         target: 'pino-pretty'
       }
@@ -24,18 +24,6 @@ async function main () {
     const databaseId = core.getInput('notion-database-id')
 
     // github.context.payload
-    const pain = JSON.stringify({
-      env: process.env,
-      githubToken: typeof githubToken === 'string' ? githubToken.slice(0, 3) : githubToken,
-      asd: core.getInput('github-token'),
-      githubRepositoryQuery,
-      qwe: core.getInput('github-repository-query'),
-      githubIssueQuery,
-      notionToken: typeof notionToken === 'string' ? notionToken.slice(0, 3) : notionToken,
-      databaseId: typeof databaseId === 'string' ? databaseId.slice(0, 3) : databaseId
-    }, null, 2)
-    logger.info(pain)
-
     await upsertStatusBoard({
       logger,
 

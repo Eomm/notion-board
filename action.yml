@@ -28,6 +28,11 @@ inputs:
     description: >
       The Notion database ID where the data will be stored.
     required: true
+  log-level:
+    description: >
+      The log level of the action.
+    required: false
+    default: 'info'
 
 runs:
   using: 'docker'

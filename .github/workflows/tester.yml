@@ -16,4 +16,5 @@ jobs:
         with:
           github-repository-query: user:Eomm is:public
           notion-token: ${{ secrets.NOTION_TOKEN }}
-          database-id: ${{ secrets.NOTION_DATABASE_ID }}
+          notion-database-id: ${{ secrets.NOTION_DATABASE_ID }}
+          log-level: debug
