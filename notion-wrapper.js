@@ -22,9 +22,9 @@ class NotionWrapper {
   }
 
   async readAllDatabase ({ pageSize = 100 } = { }) {
-    let lastCursor
-
     const allRecords = []
+
+    let lastCursor
     let pageResults
     do {
       pageResults = await this.queue.add(() => this.notion.databases.query({
@@ -43,6 +43,7 @@ class NotionWrapper {
 
   async createItem (item) {
     const toInsert = toNotionProperties(item)
+
     const result = await this._thottle(this.notion.pages.create, {
       parent: { database_id: this.databaseId },
       properties: toInsert
@@ -53,6 +54,7 @@ class NotionWrapper {
 
   async updateItem (oldItem, newItem) {
     const toUpdate = toNotionProperties(newItem)
+
     const result = await this._thottle(this.notion.pages.update, {
       parent: { database_id: this.databaseId },
       page_id: oldItem.id,

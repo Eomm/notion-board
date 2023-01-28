@@ -12,7 +12,7 @@ async function upsertStatusBoard ({
   logger,
   githubToken,
   githubRepositoryQuery,
-  githubIssueQuery,
+  githubIssueLabels,
   notionToken,
   databaseId
 }) {
@@ -31,7 +31,7 @@ async function upsertStatusBoard ({
     logger
   })
 
-  const githubRepos = await github.searchRepositories(githubRepositoryQuery)
+  const githubRepos = await github.searchRepositories(githubRepositoryQuery, githubIssueLabels)
   logger.info('Found %d repositories', githubRepos.length)
 
   const npmPackages = await npm.searchPackages(githubRepos)
@@ -132,17 +132,22 @@ function removeUnchangedLines (item) {
 }
 
 function convertToAction ({ github, npm, notion }) {
+  // all the fields must be listed here
   let payload = {
     title: github.name,
     version: github.pkg?.version,
     stars: github.stargazerCount,
     repositoryUrl: github.url,
 
-    prs: 0, // todo
-    issues: 0, // todo
+    prs: github.pullRequests.totalCount,
+    issues: github.issues.totalCount,
 
     lastCommitAt: undefined, // todo
-    archived: github.isArchived
+    archived: github.isArchived,
+
+    packageUrl: undefined,
+    packageSizeBytes: undefined,
+    downloads: undefined
   }
 
   if (npm) {

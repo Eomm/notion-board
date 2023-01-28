@@ -10,11 +10,10 @@ inputs:
       The GitHub query to select the repositories to be syncronized to Notion.
     required: true
     # default: 'user:your-username' TODO
-  github-issue-query:
+  github-issue-labels:
     description: >
-      Filter to count the issues in the repository.
+      Filter the issues counter by labels. Example: 'bug,enhancement'
     required: false
-    default: 'is:open'
   github-token:
     description: > 
       Your Github token, it's already available to your Github action.

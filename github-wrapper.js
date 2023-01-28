@@ -9,13 +9,13 @@ class GitHubWrapper {
     this.octokit = github.getOctokit(auth)
   }
 
-  async searchRepositories (searchQuery) {
+  async searchRepositories (searchQuery, issueLabels) {
     const repos = await paginateQuery({
       client: this.octokit,
       logger: this.logger,
       query: querySearch,
       queryName: 'search',
-      variables: { searchQuery }
+      variables: { searchQuery, issueLabels: issueLabels?.length ? issueLabels : undefined }
     })
 
     return repos.map(normalizeRepository)

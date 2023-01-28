@@ -1,6 +1,6 @@
 
 export const querySearch = `#graphql
-  query ($searchQuery: String!, $first: Int!, $after: String) {
+  query ($searchQuery: String!, $first: Int!, $after: String, $issueLabels: [String!]) {
     search(query: $searchQuery, type: REPOSITORY, first: $first, after: $after) {
       pageInfo {
         endCursor
@@ -15,6 +15,12 @@ export const querySearch = `#graphql
           url
           isArchived
           isFork
+          issues(states: OPEN, labels: $issueLabels) {
+            totalCount
+          }
+          pullRequests(states: OPEN) {
+            totalCount
+          }
           repositoryTopics(first: 100) {
             nodes {
               ... on RepositoryTopic {
