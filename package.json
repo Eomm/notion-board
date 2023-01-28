@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Monitor your modules and repositories from Notion",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
   "scripts": {
     "lint:fix": "standard --fix",
     "lint": "standard",
