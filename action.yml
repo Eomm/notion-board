@@ -30,8 +30,14 @@ inputs:
     required: true
 
 runs:
-  using: 'node16'
-  main: 'dist/index.cjs'
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.github-repository-query }}
+    - ${{ inputs.github-issue-query }}
+    - ${{ inputs.github-token }}
+    - ${{ inputs.notion-token }}
+    - ${{ inputs.database-id }}
 
 branding:
   icon: activity
