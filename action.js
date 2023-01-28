@@ -1,8 +1,11 @@
 
+import { diff } from 'deep-object-diff'
+import * as assert from 'node:assert'
+
 import { GitHubWrapper } from './github-wrapper.js'
 import { NpmWrapper } from './npm-wrapper.js'
-import { NotionWrapper } from './notion-wrapper.js'
-import * as fs from 'fs'
+import { NotionWrapper, toHumanProperties } from './notion-wrapper.js'
+
 export { upsertStatusBoard }
 
 async function upsertStatusBoard ({
@@ -32,7 +35,7 @@ async function upsertStatusBoard ({
 
   const npmPackages = await npm.searchPackages(githubRepos)
   logger.info('Found %d npm packages', npmPackages.length)
-  fs.writeFileSync('./npmPackages-no-meta.json', JSON.stringify(npmPackages, null, 2))
+
   const notionLines = await notion.readAllDatabase()
   logger.info('Read %d records from notion', notionLines.length)
 
@@ -43,27 +46,29 @@ async function upsertStatusBoard ({
   })
   logger.info('Found %d actions to perform', todoList.length)
 
-  for (const item of todoList) {
+  await Promise.all(todoList.map(executeAction))
+
+  async function executeAction (item) {
     switch (item.action) {
       case 'add':
-        {
-          const result = await notion.createItem(item.payload)
-          logger.info('Added item %s', result.url)
-        }
-        break
+      {
+        const result = await notion.createItem(item.payload)
+        logger.info('Added item %s', result.url)
+        return
+      }
 
       case 'update':
-        {
-          const result = await notion.updateItem(item.previousData, item.payload)
-          logger.info('Updated item %s', result.url)
-        }
-        break
+      {
+        const result = await notion.updateItem(item.previousData, item.payload)
+        logger.info('Updated item %s', result.url)
+        return
+      }
+
       case 'delete':
-        {
-          const result = await notion.deleteItem(item.previousData)
-          logger.info('Deleted item %s', result.url)
-        }
-        break
+      {
+        const result = await notion.deleteItem(item.previousData)
+        logger.info('Deleted item %s', result.id)
+      }
     }
   }
 
@@ -87,6 +92,7 @@ function buildActions ({
     .map(decorateWith(npmPackagesMap, 'npm'))
     .map(decorateWith(notionLinesMap, 'notion'))
     .map(convertToAction)
+    .filter(removeUnchangedLines)
 
   const deleteActions = notionLines
     .filter(removeOldLines(githubReposMap))
@@ -102,29 +108,56 @@ function removeOldLines (githubReposMap) {
   }
 }
 
-function convertToAction ({ github, npm, notion }) {
-  let action = 'add'
+function removeUnchangedLines (item) {
+  if (item.action !== 'update') {
+    return true
+  }
 
-  if (notion) {
-    action = 'update'
+  const asLocal = toHumanProperties(item.previousData.properties)
+
+  const changedFields = diff(asLocal, item.payload)
+  assert.ok(!changedFields.title, 'title should not change')
+
+  // no changes
+  if (Object.keys(changedFields).length === 0) {
+    return false
+  }
+
+  item.payload = {
+    title: item.payload.title,
+    ...changedFields
+  }
+  return true
+}
+
+function convertToAction ({ github, npm, notion }) {
+  let payload = {
+    title: github.name,
+    version: github.pkg?.version,
+    stars: github.stargazerCount,
+    repositoryUrl: github.url,
+
+    prs: 0, // todo
+    issues: 0, // todo
+
+    lastCommitAt: undefined, // todo
+    archived: github.isArchived
+  }
+
+  if (npm) {
+    payload = {
+      ...payload,
+      version: npm.manifest.version,
+      packageUrl: `https://www.npmjs.com/package/${npm?.name}`,
+      packageSizeBytes: npm.manifest.dist.unpackedSize,
+      downloads: 0 // todo
+    }
   }
 
   return {
-    action,
+    action: notion ? 'update' : 'add',
     previousData: notion,
-    payload: {
-      title: github.name,
-      version: npm?.version || github.pkg?.version,
-      stars: github.stargazerCount,
-      repositoryUrl: github.url,
-      packageUrl: npm?.name ? `https://www.npmjs.com/package/${npm?.name}` : undefined,
-      issues: 0, // todo
-      prs: 0, // todo
-      downloads: 0, // todo
-      packageSizeBytes: npm?.manifest?.dist.unpackedSize || undefined,
-      lastCommitAt: undefined, // todo
-      archived: github.isArchived
-    }
+    payload
   }
 }
 
@@ -135,14 +168,14 @@ function decorateWith (map, key) {
   }
 }
 
-function ghSharedKey (repo) {
+function ghSharedKey (ghRepo) {
   // todo: what if the repo occurs multiple times?
   // return `${repo.owner.login}/${repo.name}`
-  return repo.name
+  return ghRepo.name
 }
 
 function npmSharedKey (pkg) {
-  return pkg.name
+  return pkg.manifest?.name
 }
 
 function notionSharedKey (line) {
@@ -152,7 +185,11 @@ function notionSharedKey (line) {
 
 function toMap (array, genKey) {
   return array.reduce((acc, item) => {
-    acc.set(genKey(item), item)
+    const key = genKey(item)
+    if (key) {
+      // the npm key may be undefined if the repo is not published
+      acc.set(genKey(item), item)
+    }
     return acc
   }, new Map())
 }

@@ -1,6 +1,4 @@
 
-// import fs from 'fs'
-
 import https from 'https'
 import PQueue from 'p-queue'
 import { Client } from '@notionhq/client'
@@ -53,11 +51,6 @@ class NotionWrapper {
   }
 
   async updateItem (oldItem, newItem) {
-    const asLocal = toHumanProperties(oldItem.properties)
-    console.log('asLocal', asLocal)
-
-    // todo diff asLocal and newItem
-
     const toUpdate = toNotionProperties(newItem)
     const result = await this.queue.add(() => this.notion.pages.update({
       parent: { database_id: this.databaseId },
@@ -77,77 +70,62 @@ class NotionWrapper {
   }
 }
 
-export { NotionWrapper }
+export {
+  NotionWrapper,
+  toHumanProperties
+}
 
-function toNotionProperties ({
-  title,
-  version,
-  stars,
-  issues,
-  prs,
-  archived,
-  downloads,
-  repositoryUrl,
-  packageUrl,
-  packageSizeBytes,
-  lastCommitAt
-}) {
-  const mandatory = {
+function toNotionProperties (input) {
+  const out = {
     Project: {
       title: [
-        { text: { content: title } }
+        { text: { content: input.title } }
       ]
-    },
-    Issues: { number: issues },
-    PRs: { number: prs },
-    GitHub: { url: repositoryUrl },
-    Stars: { number: stars },
-    Archived: { checkbox: archived }
+    }
   }
 
-  if (lastCommitAt) {
-    mandatory['Last Commit'] = {
-      date: {
-        start: lastCommitAt
+  ifThenSet(input, 'stars', out, 'number', 'Stars')
+  ifThenSet(input, 'issues', out, 'number', 'Issues')
+  ifThenSet(input, 'prs', out, 'number', 'PRs')
+  ifThenSet(input, 'archived', out, 'checkbox', 'Archived')
+  ifThenSet(input, 'repositoryUrl', out, 'url', 'GitHub')
+  ifThenSet(input, 'packageUrl', out, 'url', 'NPM')
+  ifThenSet(input, 'downloads', out, 'number', 'Downloads')
+  ifThenSet(input, 'packageSizeBytes', out, 'number', 'Size')
+  ifThenSet(input, 'lastCommitAt', out, 'date', 'Last Commit')
+  ifThenSet(input, 'version', out, 'rich_text', 'Version')
+
+  return out
+}
+
+function ifThenSet (input, key, output, type, keyOut, defaultValue = null) {
+  if (Object.prototype.hasOwnProperty.call(input, key)) {
+    if (type === 'date') {
+      output[keyOut] = { [type]: { start: input[key] ?? defaultValue } }
+    } else if (type === 'rich_text') {
+      output[keyOut] = {
+        [type]: [
+          { type: 'text', text: { content: input[key] ?? defaultValue } }
+        ]
       }
+    } else {
+      output[keyOut] = { [type]: input[key] ?? defaultValue }
     }
   }
-
-  if (version) {
-    mandatory.Version = {
-      rich_text: [
-        { type: 'text', text: { content: version } }
-      ]
-    }
-  }
-
-  if (packageUrl) {
-    mandatory.NPM = { url: packageUrl }
-  }
-
-  if (downloads) {
-    mandatory.Downloads = { number: downloads }
-  }
-
-  if (packageSizeBytes) {
-    mandatory.Size = { number: packageSizeBytes }
-  }
-
-  return mandatory
 }
 
 function toHumanProperties (properties) {
   return {
     title: properties.Project.title[0].plain_text,
-    version: properties.Version.rich_text[0].plain_text,
+    version: properties.Version.rich_text[0]?.plain_text || undefined,
     stars: properties.Stars?.number,
-    issues: properties.Issues?.number,
-    prs: properties.PRs?.number,
-    archived: properties.Archived?.checkbox,
-    downloads: properties.Downloads?.number,
     repositoryUrl: properties.GitHub?.url,
-    packageUrl: properties.NPM?.url,
-    packageSizeBytes: properties.Size?.number,
-    lastCommitAt: properties['Last Commit']?.date.start
+    prs: properties.PRs?.number,
+    issues: properties.Issues?.number,
+    lastCommitAt: properties['Last Commit']?.date?.start || undefined,
+    archived: properties.Archived?.checkbox,
+    packageUrl: properties.NPM?.url || undefined,
+    packageSizeBytes: properties.Size?.number || undefined,
+    downloads: properties.Downloads?.number || undefined
   }
 }
