@@ -1,5 +1,5 @@
 
-import pacote from 'pacote'
+// import pacote from 'pacote'
 
 class NpmWrapper {
   constructor ({ logger }) {
@@ -26,11 +26,14 @@ class NpmWrapper {
 
   async getPackageManifest (pkg, opts = { fullMetadata: true }) {
     this.logger.debug('Fetching manifest for %s', pkg.name)
-    return pacote.manifest(pkg.name, {
-      ...opts,
-      packumentCache: this._packumentCache,
-      verifySignatures: false
-    })
+    return null
+
+    // ! can't work as GitHub Action https://github.com/npm/pacote/issues/211
+    // return pacote.manifest(pkg.name, {
+    //   ...opts,
+    //   packumentCache: this._packumentCache,
+    //   verifySignatures: false
+    // })
   }
 }
 
