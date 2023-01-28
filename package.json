@@ -34,11 +34,11 @@
     "@actions/github": "^5.1.1",
     "@notionhq/client": "^2.2.3",
     "deep-object-diff": "^1.1.9",
-    "p-queue": "^7.3.0"
+    "p-queue": "^7.3.0",
+    "pino": "^8.8.0",
+    "pino-pretty": "^9.1.1"
   },
   "devDependencies": {
-    "pino": "^8.8.0",
-    "pino-pretty": "^9.1.1",
     "standard": "^17.0.0"
   },
   "standard": {
