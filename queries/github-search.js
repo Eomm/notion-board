@@ -30,6 +30,18 @@ export const querySearch = `#graphql
               }
             }
           }
+          defaultBranchRef {
+            name
+            target {
+              ... on Commit {
+                history(first:1) {
+                  nodes {
+                    committedDate
+                  }
+                }
+              }
+            }
+          }
           pkg: object(expression: "HEAD:package.json") {
             ... on Blob {
               text

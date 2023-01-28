@@ -142,7 +142,7 @@ function convertToAction ({ github, npm, notion }) {
     prs: github.pullRequests.totalCount,
     issues: github.issues.totalCount,
 
-    lastCommitAt: undefined, // todo
+    lastCommitAt: github.defaultBranchRef?.target?.history?.nodes?.[0]?.committedDate,
     archived: github.isArchived,
 
     packageUrl: undefined,
