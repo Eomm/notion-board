@@ -1,12 +1,11 @@
 
-// import fs from 'fs'
-
 import https from 'https'
 import PQueue from 'p-queue'
 import { Client } from '@notionhq/client'
 
 class NotionWrapper {
-  constructor ({ auth, databaseId }) {
+  constructor ({ auth, databaseId, logger }) {
+    this.logger = logger
     this.notion = new Client({
       auth,
       agent: new https.Agent({ keepAlive: true })
@@ -23,9 +22,9 @@ class NotionWrapper {
   }
 
   async readAllDatabase ({ pageSize = 100 } = { }) {
-    let lastCursor
-
     const allRecords = []
+
+    let lastCursor
     let pageResults
     do {
       pageResults = await this.queue.add(() => this.notion.databases.query({
@@ -42,55 +41,105 @@ class NotionWrapper {
     return allRecords
   }
 
-  async addItem (item) {
+  async createItem (item) {
     const toInsert = toNotionProperties(item)
-    const result = await this.queue.add(() => this.notion.pages.create({
+
+    const result = await this._thottle(this.notion.pages.create, {
       parent: { database_id: this.databaseId },
       properties: toInsert
-    }))
+    })
 
     return result
   }
+
+  async updateItem (oldItem, newItem) {
+    const toUpdate = toNotionProperties(newItem)
+
+    const result = await this._thottle(this.notion.pages.update, {
+      parent: { database_id: this.databaseId },
+      page_id: oldItem.id,
+      properties: toUpdate
+    })
+
+    return result
+  }
+
+  async deleteItem (item) {
+    const result = await this._thottle(this.notion.blocks.delete, {
+      block_id: item.id
+    })
+
+    return result
+  }
+
+  _thottle (fn, input) {
+    return this.queue.add(() => fn.call(this.notion, input)
+      .catch(err => {
+        this.logger.error({ input }, 'Notion error: %s', err.message)
+        throw err
+      })
+    )
+  }
 }
 
-export { NotionWrapper }
+export {
+  NotionWrapper,
+  toHumanProperties
+}
 
-function toNotionProperties ({
-  title,
-  version,
-  stars,
-  issues,
-  prs,
-  archived,
-  downloads,
-  repositoryUrl,
-  packageUrl,
-  packageSizeBytes,
-  lastCommitAt
-}) {
-  return {
+function toNotionProperties (input) {
+  const out = {
     Project: {
       title: [
-        { text: { content: title } }
+        { text: { content: input.title } }
       ]
-    },
-    Issues: { number: issues },
-    PRs: { number: prs },
-    Downloads: { number: downloads },
-    NPM: { url: packageUrl },
-    GitHub: { url: repositoryUrl },
-    Version: {
-      rich_text: [
-        { type: 'text', text: { content: version } }
+    }
+  }
+
+  ifThenSet(input, 'stars', out, 'number', 'Stars')
+  ifThenSet(input, 'issues', out, 'number', 'Issues')
+  ifThenSet(input, 'prs', out, 'number', 'PRs')
+  ifThenSet(input, 'archived', out, 'checkbox', 'Archived')
+  ifThenSet(input, 'repositoryUrl', out, 'url', 'GitHub')
+  ifThenSet(input, 'packageUrl', out, 'url', 'NPM')
+  ifThenSet(input, 'downloads', out, 'number', 'Downloads')
+  ifThenSet(input, 'packageSizeBytes', out, 'number', 'Size')
+  ifThenSet(input, 'lastCommitAt', out, 'date', 'Last Commit')
+  ifThenSet(input, 'version', out, 'rich_text', 'Version')
+
+  return out
+}
+
+function ifThenSet (input, key, output, type, keyOut, defaultValue = null) {
+  if (!Object.prototype.hasOwnProperty.call(input, key)) {
+    return
+  }
+
+  if (type === 'date') {
+    output[keyOut] = { [type]: { start: input[key] ?? defaultValue } }
+  } else if (type === 'rich_text') {
+    output[keyOut] = {
+      [type]: [
+        { type: 'text', text: { content: input[key] ?? defaultValue } }
       ]
-    },
-    Stars: { number: stars },
-    Size: { number: packageSizeBytes },
-    'Last Commit': {
-      date: {
-        start: lastCommitAt
-      }
-    },
-    Archived: { checkbox: archived }
+    }
+  } else {
+    output[keyOut] = { [type]: input[key] ?? defaultValue }
+  }
+}
+
+function toHumanProperties (properties) {
+  return {
+    title: properties.Project.title[0].plain_text,
+    version: properties.Version.rich_text[0]?.plain_text || undefined,
+    stars: properties.Stars?.number,
+    repositoryUrl: properties.GitHub?.url,
+    prs: properties.PRs?.number,
+    issues: properties.Issues?.number,
+    lastCommitAt: properties['Last Commit']?.date?.start || undefined,
+    archived: properties.Archived?.checkbox,
+    packageUrl: properties.NPM?.url || undefined,
+    packageSizeBytes: properties.Size?.number || undefined,
+    downloads: properties.Downloads?.number || undefined
   }
 }
