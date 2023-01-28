@@ -49,15 +49,15 @@ async function main () {
   } catch (error) {
     core.setFailed(error.message)
   }
+}
 
-  const stringify = (msg, args) => {
-    if (args.length === 0) {
-      return typeof msg === 'string' ? msg : (msg.stack || msg.toString())
-    }
-    return format.defaul(msg, ...args)
-  }
+function log (logger) {
+  return (message, ...args) => logger(stringify(message, args))
+}
 
-  function log (logger) {
-    return (message, ...args) => logger(stringify(message, args))
+function stringify (msg, args) {
+  if (args.length === 0) {
+    return typeof msg === 'string' ? msg : (msg.stack || msg.toString())
   }
+  return format.default(msg, ...args)
 }
