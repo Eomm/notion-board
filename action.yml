@@ -24,7 +24,7 @@ inputs:
     description: >
       The Notion integration token.
     required: true
-  database-id:
+  notion-database-id:
     description: >
       The Notion database ID where the data will be stored.
     required: true

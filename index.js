@@ -1,6 +1,7 @@
 
+import pino from 'pino'
+
 import * as core from '@actions/core'
-import * as format from 'quick-format-unescaped'
 
 import { upsertStatusBoard } from './action.js'
 
@@ -8,19 +9,19 @@ main()
 
 async function main () {
   try {
-    const logger = {
-      debug: log(core.debug.bind(core)),
-      info: log(core.info.bind(core)),
-      warning: log(core.warning.bind(core)),
-      error: log(core.error.bind(core))
-    }
+    const logger = pino({
+      level: 'debug',
+      transport: {
+        target: 'pino-pretty'
+      }
+    })
 
-    const githubToken = process.env['INPUT_GITHUB-TOKEN']
-    const githubRepositoryQuery = process.env['INPUT_GITHUB-REPOSITORY-QUERY']
-    const githubIssueQuery = process.env['INPUT_GITHUB-ISSUE-QUERY']
+    const githubToken = core.getInput('github-token')
+    const githubRepositoryQuery = core.getInput('github-repository-query')
+    const githubIssueQuery = core.getInput('github-issue-query')
 
-    const notionToken = process.env['INPUT_NOTION-TOKEN']
-    const databaseId = process.env['INPUT_NOTION-DATABASE-ID']
+    const notionToken = core.getInput('notion-token')
+    const databaseId = core.getInput('notion-database-id')
 
     // github.context.payload
     const pain = JSON.stringify({
@@ -34,7 +35,6 @@ async function main () {
       databaseId: typeof databaseId === 'string' ? databaseId.slice(0, 3) : databaseId
     }, null, 2)
     logger.info(pain)
-    console.log(pain + ' by console.log')
 
     await upsertStatusBoard({
       logger,
@@ -51,15 +51,4 @@ async function main () {
   } catch (error) {
     core.setFailed(error.message)
   }
-}
-
-function log (logger) {
-  return (message, ...args) => logger(stringify(message, args))
-}
-
-function stringify (msg, args) {
-  if (args.length === 0) {
-    return typeof msg === 'string' ? msg : (msg.stack || msg.toString())
-  }
-  return format.default(msg, ...args)
 }

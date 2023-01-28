@@ -34,8 +34,7 @@
     "@actions/github": "^5.1.1",
     "@notionhq/client": "^2.2.3",
     "deep-object-diff": "^1.1.9",
-    "p-queue": "^7.3.0",
-    "quick-format-unescaped": "^4.0.4"
+    "p-queue": "^7.3.0"
   },
   "devDependencies": {
     "pino": "^8.8.0",
