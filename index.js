@@ -16,12 +16,12 @@ async function main () {
       error: log(error)
     }
 
-    const githubToken = core.getInput('github-token')
-    const githubRepositoryQuery = core.getInput('github-repository-query')
-    const githubIssueQuery = core.getInput('github-issue-query')
+    const githubToken = process.env['INPUT_GITHUB-TOKEN']
+    const githubRepositoryQuery = process.env['INPUT_GITHUB-REPOSITORY-QUERY']
+    const githubIssueQuery = process.env['INPUT_GITHUB-ISSUE-QUERY']
 
-    const notionToken = core.getInput('notion-token')
-    const databaseId = core.getInput('database-id')
+    const notionToken = process.env['INPUT_NOTION-TOKEN']
+    const databaseId = process.env['INPUT_NOTION-DATABASE-ID']
 
     // github.context.payload
     await upsertStatusBoard({
