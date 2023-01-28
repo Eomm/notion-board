@@ -147,9 +147,9 @@ function convertToAction ({ github, npm, notion }) {
   if (npm) {
     payload = {
       ...payload,
-      // version: npm.manifest.version,
+      version: npm.manifest.version,
       packageUrl: `https://www.npmjs.com/package/${npm?.name}`,
-      // packageSizeBytes: npm.manifest.dist.unpackedSize,
+      packageSizeBytes: npm.manifest.dist.unpackedSize,
       downloads: 0 // todo
     }
   }

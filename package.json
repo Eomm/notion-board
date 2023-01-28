@@ -35,6 +35,7 @@
     "@notionhq/client": "^2.2.3",
     "deep-object-diff": "^1.1.9",
     "p-queue": "^7.3.0",
+    "pacote": "^15.0.8",
     "pino": "^8.8.0",
     "pino-pretty": "^9.1.1"
   },
