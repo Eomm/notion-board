@@ -24,6 +24,16 @@ async function main () {
     const databaseId = process.env['INPUT_NOTION-DATABASE-ID']
 
     // github.context.payload
+    const pain = JSON.stringify({
+      githubToken: typeof githubToken === 'string' ? githubToken.slice(0, 3) : githubToken,
+      githubRepositoryQuery,
+      githubIssueQuery,
+      notionToken: typeof notionToken === 'string' ? notionToken.slice(0, 3) : notionToken,
+      databaseId: typeof databaseId === 'string' ? databaseId.slice(0, 3) : databaseId
+    }, null, 2)
+    logger.info(pain)
+    console.log(pain + ' by console.log')
+
     await upsertStatusBoard({
       logger,
 
