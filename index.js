@@ -23,7 +23,6 @@ async function main () {
     const notionToken = core.getInput('notion-token')
     const databaseId = core.getInput('notion-database-id')
 
-    // github.context.payload
     await upsertStatusBoard({
       logger,
 
