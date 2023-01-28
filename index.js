@@ -8,12 +8,11 @@ main()
 
 async function main () {
   try {
-    const { debug, error, info, warning } = core
     const logger = {
-      debug: log(debug),
-      info: log(info),
-      warning: log(warning),
-      error: log(error)
+      debug: log(core.debug.bind(core)),
+      info: log(core.info.bind(core)),
+      warning: log(core.warning.bind(core)),
+      error: log(core.error.bind(core))
     }
 
     const githubToken = process.env['INPUT_GITHUB-TOKEN']
@@ -25,8 +24,11 @@ async function main () {
 
     // github.context.payload
     const pain = JSON.stringify({
+      env: process.env,
       githubToken: typeof githubToken === 'string' ? githubToken.slice(0, 3) : githubToken,
+      asd: core.getInput('github-token'),
       githubRepositoryQuery,
+      qwe: core.getInput('github-repository-query'),
       githubIssueQuery,
       notionToken: typeof notionToken === 'string' ? notionToken.slice(0, 3) : notionToken,
       databaseId: typeof databaseId === 'string' ? databaseId.slice(0, 3) : databaseId
