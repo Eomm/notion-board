@@ -27,7 +27,8 @@ async function upsertStatusBoard ({
 
   const notion = new NotionWrapper({
     auth: notionToken,
-    databaseId
+    databaseId,
+    logger
   })
 
   const githubRepos = await github.searchRepositories(githubRepositoryQuery)
@@ -150,7 +151,7 @@ function convertToAction ({ github, npm, notion }) {
       version: npm.manifest.version,
       packageUrl: `https://www.npmjs.com/package/${npm?.name}`,
       packageSizeBytes: npm.manifest.dist.unpackedSize,
-      downloads: 0 // todo
+      downloads: npm.downloads.downloads
     }
   }
 

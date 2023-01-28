@@ -4,7 +4,8 @@ import PQueue from 'p-queue'
 import { Client } from '@notionhq/client'
 
 class NotionWrapper {
-  constructor ({ auth, databaseId }) {
+  constructor ({ auth, databaseId, logger }) {
+    this.logger = logger
     this.notion = new Client({
       auth,
       agent: new https.Agent({ keepAlive: true })
@@ -42,31 +43,40 @@ class NotionWrapper {
 
   async createItem (item) {
     const toInsert = toNotionProperties(item)
-    const result = await this.queue.add(() => this.notion.pages.create({
+    const result = await this._thottle(this.notion.pages.create, {
       parent: { database_id: this.databaseId },
       properties: toInsert
-    }))
+    })
 
     return result
   }
 
   async updateItem (oldItem, newItem) {
     const toUpdate = toNotionProperties(newItem)
-    const result = await this.queue.add(() => this.notion.pages.update({
+    const result = await this._thottle(this.notion.pages.update, {
       parent: { database_id: this.databaseId },
       page_id: oldItem.id,
       properties: toUpdate
-    }))
+    })
 
     return result
   }
 
   async deleteItem (item) {
-    const result = await this.queue.add(() => this.notion.blocks.delete({
+    const result = await this._thottle(this.notion.blocks.delete, {
       block_id: item.id
-    }))
+    })
 
     return result
+  }
+
+  _thottle (fn, input) {
+    return this.queue.add(() => fn.call(this.notion, input)
+      .catch(err => {
+        this.logger.error({ input }, 'Notion error: %s', err.message)
+        throw err
+      })
+    )
   }
 }
 
@@ -99,18 +109,20 @@ function toNotionProperties (input) {
 }
 
 function ifThenSet (input, key, output, type, keyOut, defaultValue = null) {
-  if (Object.prototype.hasOwnProperty.call(input, key)) {
-    if (type === 'date') {
-      output[keyOut] = { [type]: { start: input[key] ?? defaultValue } }
-    } else if (type === 'rich_text') {
-      output[keyOut] = {
-        [type]: [
-          { type: 'text', text: { content: input[key] ?? defaultValue } }
-        ]
-      }
-    } else {
-      output[keyOut] = { [type]: input[key] ?? defaultValue }
+  if (!Object.prototype.hasOwnProperty.call(input, key)) {
+    return
+  }
+
+  if (type === 'date') {
+    output[keyOut] = { [type]: { start: input[key] ?? defaultValue } }
+  } else if (type === 'rich_text') {
+    output[keyOut] = {
+      [type]: [
+        { type: 'text', text: { content: input[key] ?? defaultValue } }
+      ]
     }
+  } else {
+    output[keyOut] = { [type]: input[key] ?? defaultValue }
   }
 }
 
