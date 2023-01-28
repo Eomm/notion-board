@@ -21,7 +21,6 @@ const rollupConfig = {
   ],
   external: builtins,
   output: {
-    format: 'cjs',
     file: 'dist/index.js'
   }
 }
