@@ -1,6 +1,6 @@
 
 import { diff } from 'deep-object-diff'
-import * as assert from 'node:assert'
+import * as assert from 'assert'
 
 import { GitHubWrapper } from './github-wrapper.js'
 import { NpmWrapper } from './npm-wrapper.js'

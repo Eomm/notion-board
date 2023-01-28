@@ -7,7 +7,7 @@
   "scripts": {
     "lint:fix": "standard --fix",
     "lint": "standard",
-    "build": "ncc build index.js -o dist --license licenses.txt",
+    "build": "rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -40,9 +40,14 @@
     "quick-format-unescaped": "^4.0.4"
   },
   "devDependencies": {
-    "@vercel/ncc": "^0.36.1",
+    "@rollup/plugin-commonjs": "^24.0.1",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "builtin-modules": "^3.3.0",
     "pino": "^8.8.0",
     "pino-pretty": "^9.1.1",
+    "rollup": "^3.12.0",
+    "rollup-plugin-esbuild": "^5.0.0",
     "standard": "^17.0.0"
   },
   "standard": {
