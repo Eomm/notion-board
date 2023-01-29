@@ -24,6 +24,10 @@ The collected data are:
 - Last commit date
 - Last edited date
 
+> **Note**  
+> The project is still in early development and the data exported are not yet customizable nor configurable.  
+> I aim to make this application available from the [Notion Connections](https://www.notion.so/integrations/all) marketplace.
+
 ### How it works in details
 
 This GitHub Action will:
@@ -36,7 +40,7 @@ If the row's data is not changed, the row will not be updated.
 
 ## Usage
 
-> **Note**
+> **Note**  
 > This guide is for developers. This GitHub Action is not meant to be used by end-users **yet**.  
 > I'm working to make it easier to use for everyone.
 
@@ -67,10 +71,21 @@ jobs:
 
 In order to use this GitHub Action, you need to create:
 
-- A notion integration token to allow the GitHub Action to update the database
-- A notion database to store the data
+1. A notion integration token to allow the GitHub Action to update the database
+2. A notion database to store the data
 
-You must follow the [official Notion documentation to create the required resources](https://developers.notion.com/docs/create-a-notion-integration). You can stop at the _"Step 4: Add an item to the database"_ section.
+To get the token, you must follow the [official Notion documentation to create the required resources](https://developers.notion.com/docs/create-a-notion-integration).  
+Note that you must add the following `Capabilities` to the integration:
+- Read content
+- Update content
+- Insert content
+
+You can stop at the _"Step 4: Add an item to the database"_ section.
+
+Finally, when you are about to create the new database, you need to use the following [database template].
+
+> **Warning**  
+> The database template can't be modified otherwise the GitHub Action will not work. The columns' name and type are important.
 
 
 ## Inputs
@@ -90,5 +105,6 @@ You must follow the [official Notion documentation to create the required resour
 Copyright [Manuel Spigolon](https://github.com/Eomm), Licensed under [MIT](./LICENSE).
 
 
+  [database template]: https://eomm.notion.site/repository-name-259756cfa17b4ec18f2a9d3e6f66c562
   [Notion]: https://www.notion.so/
   [GitHub Search]: https://github.com/search/
