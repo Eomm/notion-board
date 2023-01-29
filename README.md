@@ -81,7 +81,7 @@ You must follow the [official Notion documentation to create the required resour
 | `github-issue-labels`     | Filter the issues counter by labels. Example: `good first issue` | No | |
 | `notion-token`            | The Notion API key to use to update the database | Yes | |
 | `notion-database-id`      | The Notion database ID to update | Yes | |
-| `github-token`            | The GitHub token to use to fetch the repositories | No | `${{ github.token }}` |
+| `github-token`            | The GitHub token to use to fetch the repositories | No | `${{github.token}}` |
 | `log-level`               | The log level to use | No | `info` |
 
 
