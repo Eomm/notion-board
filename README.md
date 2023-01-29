@@ -28,6 +28,7 @@ The collected data are:
 > The project is still in early development and the data exported are not yet customizable nor configurable.  
 > I aim to make this application available from the [Notion Connections](https://www.notion.so/integrations/all) marketplace.
 
+
 ### How it works in details
 
 This GitHub Action will:
@@ -38,11 +39,8 @@ This GitHub Action will:
 
 If the row's data is not changed, the row will not be updated.
 
-## Usage
 
-> **Note**  
-> This guide is for developers. This GitHub Action is not meant to be used by end-users **yet**.  
-> I'm working to make it easier to use for everyone.
+## Usage
 
 To install this GitHub Action, you need to create a new GitHub repository and add a `.github/workflows/notion-board.yml` file with the following content:
 
@@ -66,6 +64,7 @@ jobs:
           notion-token: ${{ secrets.NOTION_TOKEN }}
           notion-database-id: ${{ secrets.NOTION_DATABASE_ID }}
 ```
+
 
 ### How to configure Notion
 
