@@ -2,7 +2,7 @@
 # https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
 name: github-action-notion-statusboard
-description: Build a status board of your GitHub projects in your Notion workspace
+description: Build a status board of your GitHub repositories in your Notion workspace
 
 inputs:
   github-repository-query:
