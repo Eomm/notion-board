@@ -2,9 +2,11 @@
 import { diff } from 'deep-object-diff'
 import * as assert from 'assert'
 
-import { GitHubWrapper } from './github-wrapper.js'
-import { NpmWrapper } from './npm-wrapper.js'
-import { NotionWrapper, toHumanProperties } from './notion-wrapper.js'
+import { GitHubWrapper } from './libs/github-wrapper.js'
+import { NpmWrapper } from './libs/npm-wrapper.js'
+import { NotionWrapper, toHumanProperties } from './libs/notion-wrapper.js'
+
+import { toJsDateString } from './libs/utils.js'
 
 export { upsertStatusBoard }
 
@@ -142,7 +144,7 @@ function convertToAction ({ github, npm, notion }) {
     prs: github.pullRequests.totalCount,
     issues: github.issues.totalCount,
 
-    lastCommitAt: github.defaultBranchRef?.target?.history?.nodes?.[0]?.committedDate,
+    lastCommitAt: toJsDateString(github.defaultBranchRef?.target?.history?.nodes?.[0]?.committedDate),
     archived: github.isArchived,
 
     packageUrl: undefined,
