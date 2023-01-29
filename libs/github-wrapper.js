@@ -1,7 +1,7 @@
 
 import * as github from '@actions/github'
 
-import { querySearch } from './queries/github-search.js'
+import { querySearch } from '../queries/github-search.js'
 
 class GitHubWrapper {
   constructor ({ auth, logger }) {

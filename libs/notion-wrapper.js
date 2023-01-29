@@ -3,6 +3,8 @@ import https from 'https'
 import PQueue from 'p-queue'
 import { Client } from '@notionhq/client'
 
+import { toJsDateString } from './utils.js'
+
 class NotionWrapper {
   constructor ({ auth, databaseId, logger }) {
     this.logger = logger
@@ -136,7 +138,7 @@ function toHumanProperties (properties) {
     repositoryUrl: properties.GitHub?.url,
     prs: properties.PRs?.number,
     issues: properties.Issues?.number,
-    lastCommitAt: properties['Last Commit']?.date?.start || undefined,
+    lastCommitAt: toJsDateString(properties['Last Commit']?.date?.start),
     archived: properties.Archived?.checkbox,
     packageUrl: properties.NPM?.url || undefined,
     packageSizeBytes: properties.Size?.number || undefined,
