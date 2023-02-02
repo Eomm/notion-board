@@ -14,6 +14,7 @@ The collected data are:
 - GitHub repository name
 - NPM downloads per month
 - GitHub stars
+- GitHub topics
 - Number of open issues, optionally filtered by labels
 - Number of open pull requests
 - Latesr version published on NPM

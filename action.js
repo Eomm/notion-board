@@ -141,6 +141,8 @@ function convertToAction ({ github, npm, notion }) {
     stars: github.stargazerCount,
     repositoryUrl: github.url,
 
+    topics: github.repositoryTopics?.nodes?.map(node => node.topic.name),
+
     prs: github.pullRequests.totalCount,
     issues: github.issues.totalCount,
 

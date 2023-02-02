@@ -108,6 +108,7 @@ function toNotionProperties (input) {
   ifThenSet(input, 'packageSizeBytes', out, 'number', 'Size')
   ifThenSet(input, 'lastCommitAt', out, 'date', 'Last Commit')
   ifThenSet(input, 'version', out, 'rich_text', 'Version')
+  ifThenSet(input, 'topics', out, 'multi_select', 'Topics')
 
   return out
 }
@@ -124,6 +125,10 @@ function ifThenSet (input, key, output, type, keyOut, defaultValue = null) {
       [type]: [
         { type: 'text', text: { content: input[key] ?? defaultValue } }
       ]
+    }
+  } else if (type === 'multi_select') {
+    output[keyOut] = {
+      [type]: input[key].map(x => ({ name: x })) ?? []
     }
   } else {
     output[keyOut] = { [type]: input[key] ?? defaultValue }
@@ -142,6 +147,7 @@ function toHumanProperties (properties) {
     archived: properties.Archived?.checkbox,
     packageUrl: properties.NPM?.url || undefined,
     packageSizeBytes: properties.Size?.number || undefined,
-    downloads: properties.Downloads?.number || undefined
+    downloads: properties.Downloads?.number || undefined,
+    topics: properties.Topics?.multi_select?.map(x => x.name) || undefined
   }
 }
