@@ -44,7 +44,7 @@ class NotionWrapper {
   }
 
   async createItem (item) {
-    const toInsert = toNotionProperties(item)
+    const toInsert = toNotionProperties(item, { trimNull: true })
 
     const result = await this._thottle(this.notion.pages.create, {
       parent: { database_id: this.databaseId },
@@ -55,7 +55,7 @@ class NotionWrapper {
   }
 
   async updateItem (oldItem, newItem) {
-    const toUpdate = toNotionProperties(newItem)
+    const toUpdate = toNotionProperties(newItem, { trimNull: false })
 
     const result = await this._thottle(this.notion.pages.update, {
       parent: { database_id: this.databaseId },
@@ -89,7 +89,7 @@ export {
   toHumanProperties
 }
 
-function toNotionProperties (input) {
+function toNotionProperties (input, { trimNull }) {
   const out = {
     Project: {
       title: [
@@ -98,32 +98,37 @@ function toNotionProperties (input) {
     }
   }
 
-  ifThenSet(input, 'stars', out, 'number', 'Stars')
-  ifThenSet(input, 'issues', out, 'number', 'Issues')
-  ifThenSet(input, 'prs', out, 'number', 'PRs')
-  ifThenSet(input, 'archived', out, 'checkbox', 'Archived')
-  ifThenSet(input, 'repositoryUrl', out, 'url', 'GitHub')
-  ifThenSet(input, 'packageUrl', out, 'url', 'NPM')
-  ifThenSet(input, 'downloads', out, 'number', 'Downloads')
-  ifThenSet(input, 'packageSizeBytes', out, 'number', 'Size')
-  ifThenSet(input, 'lastCommitAt', out, 'date', 'Last Commit')
-  ifThenSet(input, 'version', out, 'rich_text', 'Version')
-  ifThenSet(input, 'topics', out, 'multi_select', 'Topics')
+  ifThenSet(input, 'stars', out, 'number', 'Stars', trimNull)
+  ifThenSet(input, 'issues', out, 'number', 'Issues', trimNull)
+  ifThenSet(input, 'prs', out, 'number', 'PRs', trimNull)
+  ifThenSet(input, 'archived', out, 'checkbox', 'Archived', trimNull)
+  ifThenSet(input, 'repositoryUrl', out, 'url', 'GitHub', trimNull)
+  ifThenSet(input, 'packageUrl', out, 'url', 'NPM', trimNull)
+  ifThenSet(input, 'downloads', out, 'number', 'Downloads', trimNull)
+  ifThenSet(input, 'packageSizeBytes', out, 'number', 'Size', trimNull)
+  ifThenSet(input, 'lastCommitAt', out, 'date', 'Last Commit', trimNull)
+  ifThenSet(input, 'version', out, 'rich_text', 'Version', trimNull)
+  ifThenSet(input, 'topics', out, 'multi_select', 'Topics', trimNull)
 
   return out
 }
 
-function ifThenSet (input, key, output, type, keyOut, defaultValue = null) {
+function ifThenSet (input, key, output, type, keyOut, trimNull, defaultValue = null) {
   if (!Object.prototype.hasOwnProperty.call(input, key)) {
     return
   }
 
+  const newVal = input[key] ?? defaultValue
+  if (newVal === null && trimNull) {
+    return
+  }
+
   if (type === 'date') {
-    output[keyOut] = { [type]: { start: input[key] ?? defaultValue } }
+    output[keyOut] = { [type]: { start: newVal } }
   } else if (type === 'rich_text') {
     output[keyOut] = {
       [type]: [
-        { type: 'text', text: { content: input[key] ?? defaultValue } }
+        { type: 'text', text: { content: newVal } }
       ]
     }
   } else if (type === 'multi_select') {
@@ -131,7 +136,7 @@ function ifThenSet (input, key, output, type, keyOut, defaultValue = null) {
       [type]: input[key].map(x => ({ name: x })) ?? []
     }
   } else {
-    output[keyOut] = { [type]: input[key] ?? defaultValue }
+    output[keyOut] = { [type]: newVal }
   }
 }
 
