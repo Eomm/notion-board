@@ -17,7 +17,7 @@ The collected data are:
 - GitHub topics
 - Number of open issues, optionally filtered by labels
 - Number of open pull requests
-- Latesr version published on NPM
+- Latest version published on NPM
 - Checkbox to mark archived repositories
 - Direct link to the repository
 - Direct link to the NPM page
@@ -82,7 +82,7 @@ Note that you must add the following `Capabilities` to the integration:
 
 You can stop at the _"Step 4: Add an item to the database"_ section.
 
-Finally, when you are about to create the new database, you need to use the following [database template].
+Finally, when you are about to create the new database, you need to use the following [database template] (and renaming the `Name` column to `Project`).
 
 > **Warning**  
 > The database template can't be modified otherwise the GitHub Action will not work. The columns' name and type are important.

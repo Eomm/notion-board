@@ -126,6 +126,13 @@ function removeUnchangedLines (item) {
     return false
   }
 
+  // special case for array fields
+  // if the array has changed, the diff returns an indexed object
+  // since we want to align the whole array, we need to restore it
+  if (changedFields.topics) {
+    changedFields.topics = item.payload.topics
+  }
+
   item.payload = {
     title: item.payload.title,
     ...changedFields

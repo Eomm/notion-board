@@ -1,4 +1,6 @@
 
+import fs from 'fs'
+
 export function toJsDateString (date) {
   if (date) {
     const d = new Date(date)
@@ -8,4 +10,8 @@ export function toJsDateString (date) {
 
     return d.toISOString()
   }
+}
+
+export function filefy (json, fileName) {
+  fs.writeFileSync(`./${fileName}.json`, JSON.stringify(json, null, 2))
 }
