@@ -10,11 +10,20 @@ class NpmWrapper {
   }
 
   async searchPackages (githubRepos) {
-    const packageJsons = githubRepos
-      .filter(({ pkg }) => !pkg?.private && pkg?.name) // todo we need to manage { token: npm-token } in the config
-      .map(({ pkg }) => pkg)
+    const manifests = await Promise.all(
+      githubRepos
+        .filter(({ pkg }) => !pkg?.private && pkg?.name) // todo we need to manage { token: npm-token } in the config
+        .map(async repo => {
+          // Since the repo name could be different from the npm package name
+          // I must track it in the manifest
+          const npmManifest = await this._appendExternalData(repo.pkg)
+          npmManifest.githubId = `${repo.owner.login}/${repo.name}`
 
-    return Promise.all(packageJsons.map(this._appendExternalData.bind(this)))
+          return npmManifest
+        })
+    )
+
+    return manifests.filter(npm => npm.manifest)
   }
 
   async _appendExternalData (pkg, opts) {

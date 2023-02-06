@@ -6,7 +6,7 @@ import { GitHubWrapper } from './libs/github-wrapper.js'
 import { NpmWrapper } from './libs/npm-wrapper.js'
 import { NotionWrapper, toHumanProperties } from './libs/notion-wrapper.js'
 
-import { toJsDateString } from './libs/utils.js'
+import * as utils from './libs/utils.js'
 
 export { upsertStatusBoard }
 
@@ -153,7 +153,7 @@ function convertToAction ({ github, npm, notion }) {
     prs: github.pullRequests.totalCount,
     issues: github.issues.totalCount,
 
-    lastCommitAt: toJsDateString(github.defaultBranchRef?.target?.history?.nodes?.[0]?.committedDate),
+    lastCommitAt: utils.toJsDateString(github.defaultBranchRef?.target?.history?.nodes?.[0]?.committedDate),
     archived: github.isArchived,
 
     packageUrl: undefined,
@@ -186,18 +186,15 @@ function decorateWith (map, key) {
 }
 
 function ghSharedKey (ghRepo) {
-  // todo: what if the repo occurs multiple times?
-  // return `${repo.owner.login}/${repo.name}`
-  return ghRepo.name
+  return `/${ghRepo.owner.login}/${ghRepo.name}`
 }
 
 function npmSharedKey (pkg) {
-  return pkg.manifest?.name
+  return `/${pkg.githubId}`
 }
 
 function notionSharedKey (line) {
-  // todo use `id` instead of `Project`
-  return line.properties.Project.title[0].plain_text
+  return new URL(line.properties.GitHub.url).pathname
 }
 
 function toMap (array, genKey) {
