@@ -25,6 +25,8 @@ The collected data are:
 - Last commit date
 - Last edited date
 
+Here a sample of the [database template] used to store the data.
+
 > **Note**  
 > The project is still in early development and the data exported are not yet customizable nor configurable.  
 > I aim to make this application available from the [Notion Connections](https://www.notion.so/integrations/all) marketplace.
@@ -34,6 +36,7 @@ The collected data are:
 
 This GitHub Action will:
 
+- Create all the missing columns in the Notion database
 - Fetch the list of repositories from GitHub using the provided `github-repository-query` input. You can test the query on [GitHub Search]
 - For each repository will check if it's a Node.js module and if it's published on NPM collecting additional data
 - Read the Notion database and update the existing rows or create new ones. Unrecognized rows will **be deleted**.
@@ -72,20 +75,21 @@ jobs:
 In order to use this GitHub Action, you need to create:
 
 1. A notion integration token to allow the GitHub Action to update the database
-2. A notion database to store the data
+2. An empty notion database to store the data
 
 To get the token, you must follow the [official Notion documentation to create the required resources](https://developers.notion.com/docs/create-a-notion-integration).  
 Note that you must add the following `Capabilities` to the integration:
-- Read content
-- Update content
-- Insert content
+
+- Read content: to read the database and skip the unchanged rows
+- Update content: to update existing rows, minimizing the payload
+- Insert content: to insert new rows
 
 You can stop at the _"Step 4: Add an item to the database"_ section.
 
-Finally, when you are about to create the new database, you need to use the following [database template] (and renaming the `Name` column to `Project`).
-
 > **Warning**  
-> The database template can't be modified otherwise the GitHub Action will not work. The columns' name and type are important.
+> The Action will add to the database all the necessary columns.
+> If you rename the columns or change the column's type, the columns will be added again.
+> So, right now you can't change the columns' name or type.
 
 
 ## Inputs
