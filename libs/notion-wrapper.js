@@ -5,6 +5,24 @@ import { Client } from '@notionhq/client'
 
 import { toJsDateString } from './utils.js'
 
+import DATABASE_TEMPLATE from './database-template.json' assert { type: "json" }
+
+const COLUMN_LABLES = {
+  title: 'Project',
+  version: 'Version',
+  stars: 'Stars',
+  repositoryUrl: 'GitHub',
+  prs: 'PRs',
+  issues: 'Issues',
+  lastCommitAt: 'Last Commit',
+  lastEditedAt: 'Last edited time',
+  archived: 'Archived',
+  packageUrl: 'NPM',
+  packageSizeBytes: 'Size',
+  downloads: 'Downloads',
+  topics: 'Topics'
+}
+
 class NotionWrapper {
   constructor ({ auth, databaseId, logger }) {
     this.logger = logger
@@ -21,9 +39,41 @@ class NotionWrapper {
     })
 
     this.databaseId = databaseId
+    this.columnsMapping = null
   }
 
-  async readAllDatabase ({ pageSize = 100 } = { }) {
+  async prepareDatabase () {
+    const format = await this.notion.databases.retrieve({
+      database_id: this.databaseId
+    })
+
+    const columns = Object.values(format.properties)
+    this._refreshInternalMapping(columns)
+
+    const missingColumns = this._getMissingColumns()
+    if (missingColumns.length > 0) {
+      this.logger.info('Adding missing columns: %o', missingColumns)
+
+      const updatedSchema = await this.notion.databases.update({
+        database_id: this.databaseId,
+        properties: missingColumns.reduce((acc, curr) => {
+          acc[curr.name] = curr
+          return acc
+        }, {})
+      })
+
+      this._refreshInternalMapping(Object.values(updatedSchema.properties))
+      if (this._getMissingColumns().length > 0) {
+        throw new Error(`Failed to add missing columns: ${missingColumns}`)
+      }
+    } else {
+      this.logger.debug('DB Mapping ready %o', this.columnsMapping)
+    }
+
+    return true
+  }
+
+  async readAllDatabase ({ pageSize = 100 } = {}) {
     const allRecords = []
 
     let lastCursor
@@ -44,7 +94,7 @@ class NotionWrapper {
   }
 
   async createItem (item) {
-    const toInsert = toNotionProperties(item, { trimNull: true })
+    const toInsert = this.toNotionProperties(item, { trimNull: true })
 
     const result = await this._thottle(this.notion.pages.create, {
       parent: { database_id: this.databaseId },
@@ -55,7 +105,7 @@ class NotionWrapper {
   }
 
   async updateItem (oldItem, newItem) {
-    const toUpdate = toNotionProperties(newItem, { trimNull: false })
+    const toUpdate = this.toNotionProperties(newItem, { trimNull: false })
 
     const result = await this._thottle(this.notion.pages.update, {
       parent: { database_id: this.databaseId },
@@ -74,6 +124,71 @@ class NotionWrapper {
     return result
   }
 
+  toHumanProperties (properties) {
+    return {
+      title: properties[this.columnsMapping.title.name].title[0].plain_text,
+      version: properties[this.columnsMapping.version.name].rich_text[0]?.plain_text || undefined,
+      stars: properties[this.columnsMapping.stars.name]?.number,
+      repositoryUrl: properties[this.columnsMapping.repositoryUrl.name]?.url,
+      prs: properties[this.columnsMapping.prs.name]?.number,
+      issues: properties[this.columnsMapping.issues.name]?.number,
+      lastCommitAt: toJsDateString(properties[this.columnsMapping.lastCommitAt.name]?.date?.start),
+      archived: properties[this.columnsMapping.archived.name]?.checkbox,
+      packageUrl: properties[this.columnsMapping.packageUrl.name]?.url || undefined,
+      packageSizeBytes: properties[this.columnsMapping.packageSizeBytes.name]?.number || undefined,
+      downloads: properties[this.columnsMapping.downloads.name]?.number || undefined,
+      topics: properties[this.columnsMapping.topics.name]?.multi_select?.map(x => x.name) || undefined
+    }
+  }
+
+  toNotionProperties (input, { trimNull }) {
+    const out = {
+      [this.columnsMapping.title.id]: {
+        title: [
+          { text: { content: input.title } }
+        ]
+      }
+    }
+
+    ifThenSet(input, 'stars', out, 'number', this.columnsMapping.stars.id, trimNull)
+    ifThenSet(input, 'issues', out, 'number', this.columnsMapping.issues.id, trimNull)
+    ifThenSet(input, 'prs', out, 'number', this.columnsMapping.prs.id, trimNull)
+    ifThenSet(input, 'archived', out, 'checkbox', this.columnsMapping.archived.id, trimNull)
+    ifThenSet(input, 'repositoryUrl', out, 'url', this.columnsMapping.repositoryUrl.id, trimNull)
+    ifThenSet(input, 'packageUrl', out, 'url', this.columnsMapping.packageUrl.id, trimNull)
+    ifThenSet(input, 'downloads', out, 'number', this.columnsMapping.downloads.id, trimNull)
+    ifThenSet(input, 'packageSizeBytes', out, 'number', this.columnsMapping.packageSizeBytes.id, trimNull)
+    ifThenSet(input, 'lastCommitAt', out, 'date', this.columnsMapping.lastCommitAt.id, trimNull)
+    ifThenSet(input, 'version', out, 'rich_text', this.columnsMapping.version.id, trimNull)
+    ifThenSet(input, 'topics', out, 'multi_select', this.columnsMapping.topics.id, trimNull)
+
+    return out
+  }
+
+  _refreshInternalMapping (columns) {
+    this.columnsMapping = {
+      title: columns.find(c => c.id === 'title'),
+      version: columns.find(c => c.name === COLUMN_LABLES.version),
+      stars: columns.find(c => c.name === COLUMN_LABLES.stars),
+      repositoryUrl: columns.find(c => c.name === COLUMN_LABLES.repositoryUrl),
+      prs: columns.find(c => c.name === COLUMN_LABLES.prs),
+      issues: columns.find(c => c.name === COLUMN_LABLES.issues),
+      lastCommitAt: columns.find(c => c.name === COLUMN_LABLES.lastCommitAt),
+      lastEditedAt: columns.find(c => c.name === COLUMN_LABLES.lastEditedAt),
+      archived: columns.find(c => c.name === COLUMN_LABLES.archived),
+      packageUrl: columns.find(c => c.name === COLUMN_LABLES.packageUrl),
+      packageSizeBytes: columns.find(c => c.name === COLUMN_LABLES.packageSizeBytes),
+      downloads: columns.find(c => c.name === COLUMN_LABLES.downloads),
+      topics: columns.find(c => c.name === COLUMN_LABLES.topics)
+    }
+  }
+
+  _getMissingColumns () {
+    return Object.entries(this.columnsMapping)
+      .filter(([, value]) => !value) //
+      .map(([key]) => DATABASE_TEMPLATE[COLUMN_LABLES[key]])
+  }
+
   _thottle (fn, input) {
     return this.queue.add(() => fn.call(this.notion, input)
       .catch(err => {
@@ -85,32 +200,7 @@ class NotionWrapper {
 }
 
 export {
-  NotionWrapper,
-  toHumanProperties
-}
-
-function toNotionProperties (input, { trimNull }) {
-  const out = {
-    Project: {
-      title: [
-        { text: { content: input.title } }
-      ]
-    }
-  }
-
-  ifThenSet(input, 'stars', out, 'number', 'Stars', trimNull)
-  ifThenSet(input, 'issues', out, 'number', 'Issues', trimNull)
-  ifThenSet(input, 'prs', out, 'number', 'PRs', trimNull)
-  ifThenSet(input, 'archived', out, 'checkbox', 'Archived', trimNull)
-  ifThenSet(input, 'repositoryUrl', out, 'url', 'GitHub', trimNull)
-  ifThenSet(input, 'packageUrl', out, 'url', 'NPM', trimNull)
-  ifThenSet(input, 'downloads', out, 'number', 'Downloads', trimNull)
-  ifThenSet(input, 'packageSizeBytes', out, 'number', 'Size', trimNull)
-  ifThenSet(input, 'lastCommitAt', out, 'date', 'Last Commit', trimNull)
-  ifThenSet(input, 'version', out, 'rich_text', 'Version', trimNull)
-  ifThenSet(input, 'topics', out, 'multi_select', 'Topics', trimNull)
-
-  return out
+  NotionWrapper
 }
 
 function ifThenSet (input, key, output, type, keyOut, trimNull, defaultValue = null) {
@@ -137,22 +227,5 @@ function ifThenSet (input, key, output, type, keyOut, trimNull, defaultValue = n
     }
   } else {
     output[keyOut] = { [type]: newVal }
-  }
-}
-
-function toHumanProperties (properties) {
-  return {
-    title: properties.Project.title[0].plain_text,
-    version: properties.Version.rich_text[0]?.plain_text || undefined,
-    stars: properties.Stars?.number,
-    repositoryUrl: properties.GitHub?.url,
-    prs: properties.PRs?.number,
-    issues: properties.Issues?.number,
-    lastCommitAt: toJsDateString(properties['Last Commit']?.date?.start),
-    archived: properties.Archived?.checkbox,
-    packageUrl: properties.NPM?.url || undefined,
-    packageSizeBytes: properties.Size?.number || undefined,
-    downloads: properties.Downloads?.number || undefined,
-    topics: properties.Topics?.multi_select?.map(x => x.name) || undefined
   }
 }

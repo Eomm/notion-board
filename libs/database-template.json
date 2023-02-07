@@ -1,0 +1,92 @@
+{
+  "Downloads": {
+    "id": "downloadCount",
+    "name": "Downloads",
+    "type": "number",
+    "number": {
+      "format": "number_with_commas"
+    }
+  },
+  "Issues": {
+    "id": "issueCount",
+    "name": "Issues",
+    "type": "number",
+    "number": {
+      "format": "number"
+    }
+  },
+  "PRs": {
+    "id": "prCount",
+    "name": "PRs",
+    "type": "number",
+    "number": {
+      "format": "number"
+    }
+  },
+  "Last edited time": {
+    "id": "lastEditedTime",
+    "name": "Last edited time",
+    "type": "last_edited_time",
+    "last_edited_time": {}
+  },
+  "Topics": {
+    "id": "topics",
+    "name": "Topics",
+    "type": "multi_select",
+    "multi_select": {
+      "options": []
+    }
+  },
+  "NPM": {
+    "id": "npmUrl",
+    "name": "NPM",
+    "type": "url",
+    "url": {}
+  },
+  "Last Commit": {
+    "id": "lastCommitDate",
+    "name": "Last Commit",
+    "type": "date",
+    "date": {}
+  },
+  "Stars": {
+    "id": "stars",
+    "name": "Stars",
+    "type": "number",
+    "number": {
+      "format": "number"
+    }
+  },
+  "Size": {
+    "id": "byteSize",
+    "name": "Size",
+    "type": "number",
+    "number": {
+      "format": "number_with_commas"
+    }
+  },
+  "Archived": {
+    "id": "isArchived",
+    "name": "Archived",
+    "type": "checkbox",
+    "checkbox": {}
+  },
+  "Version": {
+    "id": "version",
+    "name": "Version",
+    "type": "rich_text",
+    "rich_text": {}
+  },
+  "GitHub": {
+    "id": "githubUrl",
+    "name": "GitHub",
+    "type": "url",
+    "url": {}
+  },
+  "Project": {
+    "id": "title",
+    "name": "Project",
+    "type": "title",
+    "title": {}
+  }
+}
