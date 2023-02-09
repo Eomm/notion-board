@@ -25,7 +25,7 @@ The collected data are:
 - Last commit date
 - Last edited date
 
-Here a sample of the [database template] used to store the data.
+Here is a sample [database template] it will be used to store the data.
 
 > **Note**  
 > The project is still in early development and the data exported are not yet customizable nor configurable.  
@@ -36,12 +36,16 @@ Here a sample of the [database template] used to store the data.
 
 This GitHub Action will:
 
-- Create all the missing columns in the Notion database
+- Create all the missing columns into the Notion database
 - Fetch the list of repositories from GitHub using the provided `github-repository-query` input. You can test the query on [GitHub Search]
 - For each repository will check if it's a Node.js module and if it's published on NPM collecting additional data
-- Read the Notion database and update the existing rows or create new ones. Unrecognized rows will **be deleted**.
+- Read the Notion database and update the existing rows or create new ones
 
-If the row's data is not changed, the row will not be updated.
+#### Known behaviors
+
+- Unrecognized rows will be **deleted**
+- Unrecognized columns will be **untouched**
+- If the row's data is not changed, the row will not be updated to minimize the API calls
 
 
 ## Usage
@@ -52,9 +56,9 @@ To install this GitHub Action, you need to create a new GitHub repository and ad
 name: Notion Board
 
 on:
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch: # Allow manual trigger to force the update
   schedule:
-    - cron: "0 12 * * *" # "Everyday at 12:00 UTC (5:00 PT)" https://crontab.guru/#0_12_*_*_*
+    - cron: "0 12 * * *" # Sync it "Everyday at 12:00 UTC (5:00 PT)" https://crontab.guru/#0_12_*_*_*
 
 jobs:
   update-notion-board:
@@ -64,7 +68,7 @@ jobs:
       - name: Update Notion
         uses: Eomm/notion-board@v0
         with:
-          github-repository-query: user:Eomm is:public
+          github-repository-query: user:Eomm is:public # Replace with your query eg: "org:fastify"
           notion-token: ${{ secrets.NOTION_TOKEN }}
           notion-database-id: ${{ secrets.NOTION_DATABASE_ID }}
 ```
@@ -77,19 +81,31 @@ In order to use this GitHub Action, you need to create:
 1. A notion integration token to allow the GitHub Action to update the database
 2. An empty notion database to store the data
 
-To get the token, you must follow the [official Notion documentation to create the required resources](https://developers.notion.com/docs/create-a-notion-integration).  
+#### Create the Notion API token
+
+To get the token, you must follow the [official Notion documentation][1] to create the required resources.  
 Note that you must add the following `Capabilities` to the integration:
 
-- Read content: to read the database and skip the unchanged rows
-- Update content: to update existing rows, minimizing the payload
-- Insert content: to insert new rows
+- _Read content_: to read the database and skip the unchanged rows
+- _Update content_: to update existing rows, minimizing the payload
+- _Insert content_: to insert new rows
 
-You can stop at the _"Step 4: Add an item to the database"_ section.
+#### Create the Notion database
 
-> **Warning**  
+To create the database, you can follow the [official Notion documentation][2] or follow this quick guide:
+
+Step | Description
+--- | ---
+![](./images/step-1.png) | Create an empty page
+![](./images/step-2.png) | Create an empty inline database
+![](./images/step-3.png) | Add to the page, the connection you created to get the API token
+![](./images/step-4.png) | Share the database link to get a link that [contains the ID][3]
+Last step | Add the database ID to the GitHub Action secrets
+
+> **Info**  
 > The Action will add to the database all the necessary columns.
 > If you rename the columns or change the column's type, the columns will be added again.
-> So, right now you can't change the columns' name or type.
+> So, **right now you can't change the columns' name** or type.
 
 
 ## Inputs
@@ -109,6 +125,9 @@ You can stop at the _"Step 4: Add an item to the database"_ section.
 Copyright [Manuel Spigolon](https://github.com/Eomm), Licensed under [MIT](./LICENSE).
 
 
+  [1]: https://developers.notion.com/docs/create-a-notion-integration#step-1-create-an-integration
+  [2]: https://developers.notion.com/docs/create-a-notion-integration#step-2-share-a-database-with-your-integration
+  [3]: https://developers.notion.com/docs/create-a-notion-integration#step-3-save-the-database-id
   [database template]: https://eomm.notion.site/repository-name-259756cfa17b4ec18f2a9d3e6f66c562
   [Notion]: https://www.notion.so/
   [GitHub Search]: https://github.com/search/
