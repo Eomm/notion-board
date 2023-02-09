@@ -102,7 +102,7 @@ Step | Description
 ![](./images/step-4.png) | Share the database link to get a link that [contains the ID][3]
 Last step | Add the database ID to the GitHub Action secrets
 
-> **Info**  
+> **Note**  
 > The Action will add to the database all the necessary columns.
 > If you rename the columns or change the column's type, the columns will be added again.
 > So, **right now you can't change the columns' name** or type.
