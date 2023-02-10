@@ -2,12 +2,15 @@
 
 Monitor your Node.js modules and repositories from a [Notion] page!
 
-![status board on notion](./images/preview.png)
+[![status board on notion](./images/preview.png)](./images/preview.png)
 
 
 ## How it works
 
 This project is a GitHub Action that exports a set of data gathered from GitHub and NPM to publish it your [Notion].
+
+Doing so you will be able to monitor and filter your Node.js modules and repositories from a single page and much more.  
+Here an example of the [Fastify organization's status board](https://eomm.notion.site/7a064537ee794af698684df68e215b54?v=a660ff01ca5344769a5f2b1a1c4eeda4)!
 
 The collected data are:
 
