@@ -4,7 +4,7 @@ import * as assert from 'assert'
 
 import { GitHubWrapper } from './libs/github-wrapper.js'
 import { NpmWrapper } from './libs/npm-wrapper.js'
-import { NotionWrapper, toHumanProperties } from './libs/notion-wrapper.js'
+import { NotionWrapper } from './libs/notion-wrapper.js'
 
 import * as utils from './libs/utils.js'
 
@@ -33,6 +33,8 @@ async function upsertStatusBoard ({
     logger
   })
 
+  await notion.prepareDatabase()
+
   const githubRepos = await github.searchRepositories(githubRepositoryQuery, githubIssueLabels)
   logger.info('Found %d repositories', githubRepos.length)
 
@@ -45,7 +47,9 @@ async function upsertStatusBoard ({
   const todoList = buildActions({
     githubRepos,
     npmPackages,
-    notionLines
+    notionLines,
+
+    notionClient: notion
   })
   logger.info('Found %d actions to perform', todoList.length)
 
@@ -84,7 +88,8 @@ async function upsertStatusBoard ({
 function buildActions ({
   githubRepos,
   npmPackages,
-  notionLines
+  notionLines,
+  notionClient
 }) {
   const githubReposMap = toMap(githubRepos, ghSharedKey)
   const npmPackagesMap = toMap(npmPackages, npmSharedKey)
@@ -95,7 +100,7 @@ function buildActions ({
     .map(decorateWith(npmPackagesMap, 'npm'))
     .map(decorateWith(notionLinesMap, 'notion'))
     .map(convertToAction)
-    .filter(removeUnchangedLines)
+    .filter(removeUnchangedLines.bind(notionClient))
 
   const deleteActions = notionLines
     .filter(removeOldLines(githubReposMap))
@@ -116,7 +121,7 @@ function removeUnchangedLines (item) {
     return true
   }
 
-  const asLocal = toHumanProperties(item.previousData.properties)
+  const asLocal = this.toHumanProperties(item.previousData.properties)
 
   const changedFields = diff(asLocal, item.payload)
   assert.ok(!changedFields.title, 'title should not change')
@@ -194,6 +199,9 @@ function npmSharedKey (pkg) {
 }
 
 function notionSharedKey (line) {
+  if (!line.properties.GitHub.url) {
+    return null
+  }
   return new URL(line.properties.GitHub.url).pathname
 }
 
