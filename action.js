@@ -16,7 +16,8 @@ async function upsertStatusBoard ({
   githubRepositoryQuery,
   githubIssueLabels,
   notionToken,
-  databaseId
+  databaseId,
+  options
 }) {
   const github = new GitHubWrapper({
     auth: githubToken,
@@ -49,7 +50,8 @@ async function upsertStatusBoard ({
     npmPackages,
     notionLines,
 
-    notionClient: notion
+    notionClient: notion,
+    options
   })
   logger.info('Found %d actions to perform', todoList.length)
 
@@ -89,7 +91,8 @@ function buildActions ({
   githubRepos,
   npmPackages,
   notionLines,
-  notionClient
+  notionClient,
+  options: { deleteAdditionalRows }
 }) {
   const githubReposMap = toMap(githubRepos, ghSharedKey)
   const npmPackagesMap = toMap(npmPackages, npmSharedKey)
@@ -101,6 +104,10 @@ function buildActions ({
     .map(decorateWith(notionLinesMap, 'notion'))
     .map(convertToAction)
     .filter(removeUnchangedLines.bind(notionClient))
+
+  if (!deleteAdditionalRows) {
+    return addAndUpdateActions
+  }
 
   const deleteActions = notionLines
     .filter(removeOldLines(githubReposMap))

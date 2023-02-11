@@ -27,6 +27,10 @@ inputs:
     description: >
       The Notion database ID where the data will be stored.
     required: true
+  delete-additional-rows:
+    description: >
+      Delete Notion database's rows if they are not present in the GitHub query.
+    default: 'true'
   log-level:
     description: >
       The log level of the action.
