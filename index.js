@@ -23,6 +23,10 @@ async function main () {
     const notionToken = core.getInput('notion-token')
     const databaseId = core.getInput('notion-database-id')
 
+    const behavior = {
+      deleteAdditionalRows: core.getInput('delete-additional-rows') === 'true'
+    }
+
     await upsertStatusBoard({
       logger,
 
@@ -31,7 +35,9 @@ async function main () {
       githubIssueLabels,
 
       notionToken,
-      databaseId
+      databaseId,
+
+      options: behavior
     })
 
     logger.info('Completed')

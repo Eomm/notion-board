@@ -46,7 +46,6 @@ This GitHub Action will:
 
 #### Known behaviors
 
-- Unrecognized rows will be **deleted**
 - Unrecognized columns will be **untouched**
 - If the row's data is not changed, the row will not be updated to minimize the API calls
 
@@ -120,6 +119,7 @@ Last step | Add the database ID to the GitHub Action secrets
 | `notion-token`            | The Notion API key to use to update the database | Yes | |
 | `notion-database-id`      | The Notion database ID to update | Yes | |
 | `github-token`            | The GitHub token to use to fetch the repositories | No | `${{github.token}}` |
+| `delete-additional-rows`  | Delete Notion database's rows if they are not present in the GitHub query. | No | `true` |
 | `log-level`               | The log level to use | No | `info` |
 
 
