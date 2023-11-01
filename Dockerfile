@@ -5,7 +5,8 @@ COPY . .
 RUN npm ci --omit=dev
 
 FROM gcr.io/distroless/nodejs18-debian11
-COPY --from=build-env . .
+WORKDIR /app
+COPY --from=build-env . /app
 
 ENTRYPOINT [ "node" ]
 CMD ["/index.js"]
