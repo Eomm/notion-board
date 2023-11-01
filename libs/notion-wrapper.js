@@ -15,6 +15,7 @@ const COLUMN_LABLES = {
   prs: 'PRs',
   issues: 'Issues',
   lastCommitAt: 'Last Commit',
+  lastReleaseAt: 'Last Release',
   lastEditedAt: 'Last edited time',
   archived: 'Archived',
   packageUrl: 'NPM',
@@ -66,6 +67,7 @@ class NotionWrapper {
       if (this._getMissingColumns().length > 0) {
         throw new Error(`Failed to add missing columns: ${missingColumns}`)
       }
+      this.logger.debug('DB Mapping ready %o', this.columnsMapping)
     } else {
       this.logger.debug('DB Mapping ready %o', this.columnsMapping)
     }
@@ -159,6 +161,7 @@ class NotionWrapper {
     ifThenSet(input, 'downloads', out, 'number', this.columnsMapping.downloads.id, trimNull)
     ifThenSet(input, 'packageSizeBytes', out, 'number', this.columnsMapping.packageSizeBytes.id, trimNull)
     ifThenSet(input, 'lastCommitAt', out, 'date', this.columnsMapping.lastCommitAt.id, trimNull)
+    ifThenSet(input, 'lastReleaseAt', out, 'date', this.columnsMapping.lastReleaseAt.id, trimNull)
     ifThenSet(input, 'version', out, 'rich_text', this.columnsMapping.version.id, trimNull)
     ifThenSet(input, 'topics', out, 'multi_select', this.columnsMapping.topics.id, trimNull)
 
@@ -174,6 +177,7 @@ class NotionWrapper {
       prs: columns.find(c => c.name === COLUMN_LABLES.prs),
       issues: columns.find(c => c.name === COLUMN_LABLES.issues),
       lastCommitAt: columns.find(c => c.name === COLUMN_LABLES.lastCommitAt),
+      lastReleaseAt: columns.find(c => c.name === COLUMN_LABLES.lastReleaseAt),
       lastEditedAt: columns.find(c => c.name === COLUMN_LABLES.lastEditedAt),
       archived: columns.find(c => c.name === COLUMN_LABLES.archived),
       packageUrl: columns.find(c => c.name === COLUMN_LABLES.packageUrl),
@@ -214,7 +218,11 @@ function ifThenSet (input, key, output, type, keyOut, trimNull, defaultValue = n
   }
 
   if (type === 'date') {
-    output[keyOut] = { [type]: { start: newVal } }
+    if (!newVal) {
+      output[keyOut] = { [type]: newVal }
+    } else {
+      output[keyOut] = { [type]: { start: newVal } }
+    }
   } else if (type === 'rich_text') {
     output[keyOut] = {
       [type]: [

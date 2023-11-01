@@ -49,6 +49,12 @@
     "type": "date",
     "date": {}
   },
+  "Last Release": {
+    "id": "lastReleaseDate",
+    "name": "Last Release",
+    "type": "date",
+    "date": {}
+  },
   "Stars": {
     "id": "stars",
     "name": "Stars",

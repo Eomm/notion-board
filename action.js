@@ -166,6 +166,7 @@ function convertToAction ({ github, npm, notion }) {
     issues: github.issues.totalCount,
 
     lastCommitAt: utils.toJsDateString(github.defaultBranchRef?.target?.history?.nodes?.[0]?.committedDate),
+    lastReleaseAt: utils.toJsDateString(github.releases?.nodes?.[0]?.publishedAt),
     archived: github.isArchived,
 
     packageUrl: undefined,
