@@ -30,6 +30,12 @@ export const querySearch = `#graphql
               }
             }
           }
+          releases(first:1) {
+            nodes {
+              publishedAt
+              tagName
+            }
+          }
           defaultBranchRef {
             name
             target {

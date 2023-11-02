@@ -37,7 +37,7 @@ function paginateQuery (options) {
   const paginatedQuery = async ({ pageInfo = {}, nodes = [] } = {}) => {
     const res = await client.graphql(query, {
       ...variables,
-      first: 100,
+      first: 50, // ! todo make this configurable
       after: pageInfo.endCursor
     }).then(result => result[queryName])
 
