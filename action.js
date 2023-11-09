@@ -1,4 +1,3 @@
-
 import { diff } from 'deep-object-diff'
 import * as assert from 'assert'
 
@@ -21,7 +20,8 @@ async function upsertStatusBoard ({
 }) {
   const github = new GitHubWrapper({
     auth: githubToken,
-    logger
+    logger,
+    options
   })
 
   const npm = new NpmWrapper({

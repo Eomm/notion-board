@@ -1,12 +1,12 @@
-
 import * as github from '@actions/github'
 
 import { querySearch } from '../queries/github-search.js'
 
 class GitHubWrapper {
-  constructor ({ auth, logger }) {
+  constructor ({ auth, logger, options }) {
     this.logger = logger
     this.octokit = github.getOctokit(auth)
+    this.wrapperOpts = options
   }
 
   async searchRepositories (searchQuery, issueLabels) {
@@ -15,7 +15,11 @@ class GitHubWrapper {
       logger: this.logger,
       query: querySearch,
       queryName: 'search',
-      variables: { searchQuery, issueLabels: issueLabels?.length ? issueLabels : undefined }
+      pageSize: this.wrapperOpts.pageSize,
+      variables: {
+        searchQuery,
+        issueLabels: issueLabels?.length ? issueLabels : undefined
+      }
     })
 
     return repos.map(normalizeRepository)
@@ -32,12 +36,12 @@ function normalizeRepository (repo) {
 }
 
 function paginateQuery (options) {
-  const { client, logger, query, queryName, variables } = options
+  const { client, logger, query, queryName, variables, pageSize } = options
 
   const paginatedQuery = async ({ pageInfo = {}, nodes = [] } = {}) => {
     const res = await client.graphql(query, {
       ...variables,
-      first: 50, // ! todo make this configurable
+      first: pageSize,
       after: pageInfo.endCursor
     }).then(result => result[queryName])
 
