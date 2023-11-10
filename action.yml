@@ -36,6 +36,12 @@ inputs:
       The log level of the action.
     required: false
     default: 'info'
+  page-size:
+    description: >
+      The page size of the GitHub query. Set a lower value if you are getting
+      timeout errors. The maximum is 100.
+    required: false
+    default: '100'
 
 runs:
   using: 'docker'

@@ -18,3 +18,4 @@ jobs:
           notion-token: ${{ secrets.NOTION_TOKEN }}
           notion-database-id: ${{ secrets.NOTION_DATABASE_ID }}
           log-level: debug
+          page-size: 30
