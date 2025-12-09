@@ -174,7 +174,7 @@ function convertToAction ({ github, npm, notion }) {
     downloads: undefined
   }
 
-  if (npm) {
+  if (npm?.downloads?.downloads >= 0) {
     payload = {
       ...payload,
       version: npm.manifest.version,
