@@ -224,13 +224,13 @@ function ifThenSet (input, key, output, type, keyOut, trimNull, defaultValue = n
       output[keyOut] = { [type]: { start: newVal } }
     }
   } else if (type === 'rich_text') {
-    // handle null - Notion API requires content to be a string
-    if (newVal === null) {
+    // Notion API needs content to be string, not null/undefined
+    if (!newVal) {
       output[keyOut] = { [type]: [] }
     } else {
       output[keyOut] = {
         [type]: [
-          { type: 'text', text: { content: newVal } }
+          { type: 'text', text: { content: String(newVal) } }
         ]
       }
     }
