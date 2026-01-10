@@ -224,10 +224,15 @@ function ifThenSet (input, key, output, type, keyOut, trimNull, defaultValue = n
       output[keyOut] = { [type]: { start: newVal } }
     }
   } else if (type === 'rich_text') {
-    output[keyOut] = {
-      [type]: [
-        { type: 'text', text: { content: newVal } }
-      ]
+    // handle null - Notion API requires content to be a string
+    if (newVal === null) {
+      output[keyOut] = { [type]: [] }
+    } else {
+      output[keyOut] = {
+        [type]: [
+          { type: 'text', text: { content: newVal } }
+        ]
+      }
     }
   } else if (type === 'multi_select') {
     output[keyOut] = {
