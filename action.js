@@ -6,6 +6,7 @@ import { NpmWrapper } from './libs/npm-wrapper.js'
 import { NotionWrapper } from './libs/notion-wrapper.js'
 
 import * as utils from './libs/utils.js'
+import { toGraphqlAlias } from './queries/github-search.js'
 
 export { upsertStatusBoard }
 
@@ -14,6 +15,7 @@ async function upsertStatusBoard ({
   githubToken,
   githubRepositoryQuery,
   githubIssueLabels,
+  githubIssueColumns = [],
   notionToken,
   databaseId,
   options
@@ -31,12 +33,13 @@ async function upsertStatusBoard ({
   const notion = new NotionWrapper({
     auth: notionToken,
     databaseId,
-    logger
+    logger,
+    issueColumns: githubIssueColumns
   })
 
   await notion.prepareDatabase()
 
-  const githubRepos = await github.searchRepositories(githubRepositoryQuery, githubIssueLabels)
+  const githubRepos = await github.searchRepositories(githubRepositoryQuery, githubIssueLabels, githubIssueColumns)
   logger.info('Found %d repositories', githubRepos.length)
 
   const npmPackages = await npm.searchPackages(githubRepos)
@@ -102,7 +105,7 @@ function buildActions ({
     .map(github => ({ github }))
     .map(decorateWith(npmPackagesMap, 'npm'))
     .map(decorateWith(notionLinesMap, 'notion'))
-    .map(convertToAction)
+    .map(item => convertToAction(item, notionClient.issueColumns))
     .filter(removeUnchangedLines.bind(notionClient))
 
   if (!deleteAdditionalRows) {
@@ -152,7 +155,7 @@ function removeUnchangedLines (item) {
   return true
 }
 
-function convertToAction ({ github, npm, notion }) {
+function convertToAction ({ github, npm, notion }, issueColumns = []) {
   // all the fields must be listed here
   let payload = {
     title: github.name,
@@ -182,6 +185,11 @@ function convertToAction ({ github, npm, notion }) {
       packageSizeBytes: npm.manifest.dist.unpackedSize,
       downloads: npm.downloads.downloads
     }
+  }
+
+  for (const label of issueColumns) {
+    const alias = toGraphqlAlias(label)
+    payload[label] = github[alias]?.totalCount
   }
 
   return {

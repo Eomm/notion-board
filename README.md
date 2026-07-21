@@ -116,6 +116,7 @@ Last step | Add the database ID to the GitHub Action secrets
 | --- | --- | --- | --- |
 | `github-repository-query` | The GitHub repository query to fetch the repositories to monitor. You can test the query on [GitHub Search] | Yes | |
 | `github-issue-labels`     | Filter the issues counter by labels. Example: `good first issue` | No | |
+| `github-issue-columns`    | Add one Notion column per label with the open issues count for that label. Comma-separated list. Example: `good first issue,triage,stale` | No | |
 | `notion-token`            | The Notion API key to use to update the database | Yes | |
 | `notion-database-id`      | The Notion database ID to update | Yes | |
 | `github-token`            | The GitHub token to use to fetch the repositories | No | `${{github.token}}` |

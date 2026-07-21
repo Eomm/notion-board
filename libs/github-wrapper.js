@@ -1,6 +1,6 @@
 import * as github from '@actions/github'
 
-import { querySearch } from '../queries/github-search.js'
+import { buildQuery } from '../queries/github-search.js'
 
 class GitHubWrapper {
   constructor ({ auth, logger, options }) {
@@ -9,11 +9,11 @@ class GitHubWrapper {
     this.wrapperOpts = options
   }
 
-  async searchRepositories (searchQuery, issueLabels) {
+  async searchRepositories (searchQuery, issueLabels, issueColumns) {
     const repos = await paginateQuery({
       client: this.octokit,
       logger: this.logger,
-      query: querySearch,
+      query: buildQuery(issueColumns),
       queryName: 'search',
       pageSize: this.wrapperOpts.pageSize,
       variables: {
