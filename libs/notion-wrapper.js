@@ -25,7 +25,7 @@ const COLUMN_LABLES = {
 }
 
 class NotionWrapper {
-  constructor ({ auth, databaseId, logger }) {
+  constructor ({ auth, databaseId, logger, issueColumns = [] }) {
     this.logger = logger
     this.notion = new Client({
       auth,
@@ -40,7 +40,9 @@ class NotionWrapper {
     })
 
     this.databaseId = databaseId
+    this.issueColumns = issueColumns
     this.columnsMapping = null
+    this.issueColumnsMapping = []
   }
 
   async prepareDatabase () {
@@ -53,7 +55,7 @@ class NotionWrapper {
 
     const missingColumns = this._getMissingColumns()
     if (missingColumns.length > 0) {
-      this.logger.info('Adding missing columns: %o', missingColumns)
+      this.logger.info('Adding missing columns: %o', missingColumns.map(c => c.name))
 
       const updatedSchema = await this.notion.databases.update({
         database_id: this.databaseId,
@@ -65,7 +67,7 @@ class NotionWrapper {
 
       this._refreshInternalMapping(Object.values(updatedSchema.properties))
       if (this._getMissingColumns().length > 0) {
-        throw new Error(`Failed to add missing columns: ${missingColumns}`)
+        throw new Error(`Failed to add missing columns: ${missingColumns.map(c => c.name).join(', ')}`)
       }
       this.logger.debug('DB Mapping ready %o', this.columnsMapping)
     } else {
@@ -127,7 +129,7 @@ class NotionWrapper {
   }
 
   toHumanProperties (properties) {
-    return {
+    const result = {
       title: properties[this.columnsMapping.title.name].title[0].plain_text,
       version: properties[this.columnsMapping.version.name].rich_text[0]?.plain_text || undefined,
       stars: properties[this.columnsMapping.stars.name]?.number,
@@ -141,6 +143,14 @@ class NotionWrapper {
       downloads: properties[this.columnsMapping.downloads.name]?.number || undefined,
       topics: properties[this.columnsMapping.topics.name]?.multi_select?.map(x => x.name) || undefined
     }
+
+    for (const mapping of this.issueColumnsMapping) {
+      if (mapping.column) {
+        result[mapping.label] = properties[mapping.column.name]?.number
+      }
+    }
+
+    return result
   }
 
   toNotionProperties (input, { trimNull }) {
@@ -165,6 +175,12 @@ class NotionWrapper {
     ifThenSet(input, 'version', out, 'rich_text', this.columnsMapping.version.id, trimNull)
     ifThenSet(input, 'topics', out, 'multi_select', this.columnsMapping.topics.id, trimNull)
 
+    for (const mapping of this.issueColumnsMapping) {
+      if (mapping.column) {
+        ifThenSet(input, mapping.label, out, 'number', mapping.column.id, trimNull)
+      }
+    }
+
     return out
   }
 
@@ -185,12 +201,24 @@ class NotionWrapper {
       downloads: columns.find(c => c.name === COLUMN_LABLES.downloads),
       topics: columns.find(c => c.name === COLUMN_LABLES.topics)
     }
+
+    this.issueColumnsMapping = this.issueColumns.map(label => ({
+      label,
+      column: columns.find(c => c.name === label)
+    }))
   }
 
   _getMissingColumns () {
-    return Object.entries(this.columnsMapping)
-      .filter(([, value]) => !value) //
+    const staticMissing = Object.entries(this.columnsMapping)
+      .filter(([key, value]) => key !== 'title' && !value) // title is auto-created
       .map(([key]) => DATABASE_TEMPLATE[COLUMN_LABLES[key]])
+      .filter(Boolean)
+
+    const dynamicMissing = this.issueColumnsMapping
+      .filter(m => !m.column)
+      .map(m => buildIssueColumnTemplate(m.label))
+
+    return staticMissing.concat(dynamicMissing)
   }
 
   _thottle (fn, input) {
@@ -205,6 +233,14 @@ class NotionWrapper {
 
 export {
   NotionWrapper
+}
+
+function buildIssueColumnTemplate (label) {
+  return {
+    name: label,
+    type: 'number',
+    number: { format: 'number' }
+  }
 }
 
 function ifThenSet (input, key, output, type, keyOut, trimNull, defaultValue = null) {

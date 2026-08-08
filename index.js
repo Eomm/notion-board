@@ -18,6 +18,7 @@ async function main () {
     const githubToken = core.getInput('github-token')
     const githubRepositoryQuery = core.getInput('github-repository-query')
     const githubIssueLabels = core.getInput('github-issue-labels')?.split(',').map(s => s.trim()).filter(e => e)
+    const githubIssueColumns = core.getInput('github-issue-columns')?.split(',').map(s => s.trim()).filter(e => e) || []
 
     const notionToken = core.getInput('notion-token')
     const databaseId = core.getInput('notion-database-id')
@@ -38,6 +39,7 @@ async function main () {
       githubToken,
       githubRepositoryQuery,
       githubIssueLabels,
+      githubIssueColumns,
 
       notionToken,
       databaseId,
