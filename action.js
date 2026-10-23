@@ -37,15 +37,15 @@ async function upsertStatusBoard ({
     issueColumns: githubIssueColumns
   })
 
-  await notion.prepareDatabase()
+  await runStage('Notion database setup', () => notion.prepareDatabase())
 
-  const githubRepos = await github.searchRepositories(githubRepositoryQuery, githubIssueLabels, githubIssueColumns)
+  const githubRepos = await runStage('GitHub repository search', () => github.searchRepositories(githubRepositoryQuery, githubIssueLabels, githubIssueColumns))
   logger.info('Found %d repositories', githubRepos.length)
 
-  const npmPackages = await npm.searchPackages(githubRepos)
+  const npmPackages = await runStage('npm package lookup', () => npm.searchPackages(githubRepos))
   logger.info('Found %d npm packages', npmPackages.length)
 
-  const notionLines = await notion.readAllDatabase()
+  const notionLines = await runStage('Notion row query', () => notion.readAllDatabase())
   logger.info('Read %d records from notion', notionLines.length)
 
   const todoList = buildActions({
@@ -58,7 +58,20 @@ async function upsertStatusBoard ({
   })
   logger.info('Found %d actions to perform', todoList.length)
 
-  await Promise.all(todoList.map(executeAction))
+  await runStage('Notion row writes', () => Promise.all(todoList.map(executeAction)))
+
+  async function runStage (stage, operation) {
+    const started = Date.now()
+    logger.info({ stage }, 'Stage started')
+    try {
+      const result = await operation()
+      logger.info({ stage, elapsedMs: Date.now() - started }, 'Stage completed')
+      return result
+    } catch (error) {
+      logger.error({ stage, elapsedMs: Date.now() - started }, 'Stage failed')
+      throw new Error(`${stage} failed: ${error.message}`, { cause: error })
+    }
+  }
 
   async function executeAction (item) {
     switch (item.action) {

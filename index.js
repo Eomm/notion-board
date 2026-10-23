@@ -23,9 +23,9 @@ async function main () {
     const notionToken = core.getInput('notion-token')
     const databaseId = core.getInput('notion-database-id')
 
-    const pageSize = parseInt(core.getInput('page-size'), 10)
-    if (pageSize < 1 || pageSize > 100) {
-      throw new Error('page-size must be between 1 and 100')
+    const pageSize = Number(core.getInput('page-size'))
+    if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+      throw new Error('page-size must be an integer between 1 and 100')
     }
 
     const behavior = {
