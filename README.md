@@ -122,6 +122,41 @@ Last step | Add the database ID to the GitHub Action secrets
 | `github-token`            | The GitHub token to use to fetch the repositories | No | `${{github.token}}` |
 | `delete-additional-rows`  | Delete Notion database's rows if they are not present in the GitHub query. | No | `true` |
 | `log-level`               | The log level to use | No | `info` |
+| `page-size`               | Initial GitHub query page size (1-100). Automatically reduced on GitHub 502/504 timeouts. | No | `10` |
+
+### Troubleshooting network failures
+
+The request sequence is: Notion database retrieval (and schema update if columns
+are missing), GitHub GraphQL repository search (one request per page), npm
+registry manifests and download counts, Notion row queries (paginated), then
+Notion row creates, updates and deletes. Each stage logs its start, completion
+and failure. GitHub page diagnostics include the cursor, page size, elapsed time,
+HTTP status and request ID when available; they do not log tokens or request headers.
+
+An HTML `502 Bad Gateway` after `DB Mapping ready` but before `Found ... repositories`
+comes from the GitHub search stage, not a subsequent Notion request. GitHub
+[terminates queries that take more than 10 seconds][graphql-limits], returning
+502 or 504. Large repository pages with nested issue, release, topic, commit and
+package queries can reach this limit. The default page size is 10. If a page
+times out, the action halves its size at the same cursor and retains the smaller
+size for later pages. It stops if a single-repository request still fails; it
+does not blindly retry the same expensive query or accept partial results.
+Other errors fail immediately.
+
+### Notion API compatibility
+
+This action currently uses SDK v2 and its `2022-06-28` API version for
+single-data-source databases. The [official SDK compatibility table][notion-sdk]
+and [v5 migration notes][notion-v5] distinguish this API from `2025-09-03`.
+The latter separates database containers from data sources: retrieve the
+database to discover its `data_sources`, retrieve/update properties and query
+rows through `dataSources.*`, and create pages with a `data_source_id` parent.
+Page updates use `page_id` and properties, not a new parent.
+The existing `databases.retrieve` properties, `databases.update` schema,
+`databases.query` and `database_id` create parent must not be carried unchanged
+into an SDK v5 upgrade. Multi-data-source databases require that coordinated
+migration and explicit source selection; they are not supported by this action.
+The GitHub timeout fix intentionally does not change the Notion API version.
 
 
 ## License
@@ -135,3 +170,6 @@ Copyright [Manuel Spigolon](https://github.com/Eomm), Licensed under [MIT](./LIC
   [database template]: https://eomm.notion.site/repository-name-259756cfa17b4ec18f2a9d3e6f66c562
   [Notion]: https://www.notion.so/
   [GitHub Search]: https://github.com/search/
+  [graphql-limits]: https://docs.github.com/en/graphql/overview/rate-limits-and-query-limits-for-the-graphql-api#timeouts
+  [notion-sdk]: https://github.com/makenotion/notion-sdk-js#requirements-and-compatibility
+  [notion-v5]: https://github.com/makenotion/notion-sdk-js/releases/tag/v5.0.0

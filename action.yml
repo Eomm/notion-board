@@ -44,10 +44,10 @@ inputs:
     default: 'info'
   page-size:
     description: >
-      The page size of the GitHub query. Set a lower value if you are getting
-      timeout errors. The maximum is 100.
+      The initial page size of the GitHub query (1-100). On a GitHub 502/504
+      timeout, the action reduces the page size at the same cursor.
     required: false
-    default: '100'
+    default: '10'
 
 runs:
   using: 'docker'
