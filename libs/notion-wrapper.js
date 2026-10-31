@@ -260,6 +260,11 @@ function ifThenSet (input, key, output, type, keyOut, trimNull, defaultValue = n
       output[keyOut] = { [type]: { start: newVal } }
     }
   } else if (type === 'rich_text') {
+    // Notion rejects null content, so skip the property when the value
+    // could not be fetched (e.g. version) instead of sending content: null.
+    if (newVal === null || newVal === undefined) {
+      return
+    }
     output[keyOut] = {
       [type]: [
         { type: 'text', text: { content: newVal } }
